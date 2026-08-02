@@ -233,7 +233,22 @@ class LLMClient:
             "\n\nRespond with ONLY valid JSON. No prose, no markdown fences.")
         raw = self.chat(prompt, system=sys_json.strip(), temperature=temperature,
                         max_tokens=max_tokens, **kw)
-        return extract_json(raw) if raw else None
+        if not raw:
+            return None
+        parsed = extract_json(raw)
+        if parsed is None:
+            # A truncated response is a non-empty string, so `chat` cached it as a
+            # success. Every later run then replays the same unparseable text from
+            # disk and falls back to slow per-row retries forever — the cache
+            # remembers the failure instead of the answer. Evict it so a retry can
+            # actually retry.
+            self._evict(self.name, self.model, sys_json.strip(), prompt,
+                        temperature, kw.get("cache_salt", ""))
+        return parsed
+
+    def _evict(self, *key_parts):
+        """Drop one poisoned cache entry from memory (the JSONL is append-only)."""
+        self.cache.mem.pop(_key(*key_parts), None)
 
     def chat_many(self, prompts: list[str], system: str | None = None,
                   temperature: float = 0.0, max_tokens: int = 1024,
@@ -282,10 +297,17 @@ class GeminiClient(LLMClient):
     def _request(self, prompt, system, temperature, max_tokens, key):
         url = ("https://generativelanguage.googleapis.com/v1beta/models/"
                f"{self.model}:generateContent")
+        # Gemini 2.5 thinks by default, and the thinking tokens come out of
+        # maxOutputTokens. On a 20-item batch translation that silently truncates
+        # the JSON mid-object: the batch fails to parse, every row falls back to a
+        # slow single-row retry, and a 10-minute job becomes a 3-hour one. We do
+        # not need chain-of-thought to translate or to fill a fixed schema, so
+        # turn it off and give the whole budget to the answer.
         body = {
             "contents": [{"role": "user", "parts": [{"text": prompt}]}],
             "generationConfig": {"temperature": temperature,
-                                 "maxOutputTokens": max_tokens},
+                                 "maxOutputTokens": max_tokens,
+                                 "thinkingConfig": {"thinkingBudget": 0}},
         }
         if system:
             body["systemInstruction"] = {"parts": [{"text": system}]}
