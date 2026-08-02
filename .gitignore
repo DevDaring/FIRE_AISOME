@@ -61,3 +61,8 @@ Thumbs.db
 .idea/
 .vscode/
 Submission/Submission_Rules.pdf
+
+# Run logs — can contain provider error text with live keys in it
+logs/
+Codes/logs/
+*.log

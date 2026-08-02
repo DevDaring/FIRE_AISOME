@@ -236,6 +236,57 @@ ol.steps li::marker{font-family:var(--mono); font-size:.85em; color:var(--accent
 .toc .tt{font-size:.95rem;}
 .toc .tm{margin-left:auto; font-family:var(--mono); font-size:.68rem; color:var(--ink-3); white-space:nowrap;}
 
+/* ---------- status dashboard ---------- */
+.status-band{
+  border:1px solid var(--rule-strong); border-radius:4px; background:var(--surface);
+  overflow:hidden; margin-top:8px;
+}
+.status-row{
+  display:grid; grid-template-columns:22px 1fr auto; gap:12px; align-items:baseline;
+  padding:10px 16px; font-size:.94rem;
+}
+.status-row + .status-row{border-top:1px solid var(--rule);}
+.status-row .mark{font-family:var(--mono); font-size:.85rem; text-align:center;}
+.status-row.done .mark{color:var(--favour);}
+.status-row.live .mark{color:var(--accent);}
+.status-row.wait .mark{color:var(--ink-3);}
+.status-row.block .mark{color:var(--against);}
+.status-row.done .who,.status-row.live .who{color:var(--ink-3);}
+.who{
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); white-space:nowrap;
+}
+.who.you{color:var(--against); font-weight:600;}
+.status-row.block{background:var(--against-bg);}
+.status-row .detail{color:var(--ink-2); font-size:.86rem;}
+
+/* ---------- todo table ---------- */
+.todo{border:1px solid var(--rule-strong); border-radius:4px; overflow:hidden;}
+.todo-grp{
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3); padding:9px 16px; background:var(--surface-2);
+  border-bottom:1px solid var(--rule); border-top:1px solid var(--rule);
+}
+.todo-grp:first-child{border-top:none;}
+.todo-item{
+  display:grid; grid-template-columns:22px 1fr; gap:12px; padding:11px 16px;
+  background:var(--surface); align-items:start;
+}
+.todo-item + .todo-item{border-top:1px solid var(--rule);}
+.todo-item .mark{font-family:var(--mono); font-size:.85rem; line-height:1.5;}
+.todo-item.done{color:var(--ink-3);}
+.todo-item.done .mark{color:var(--favour);}
+.todo-item.done .t{text-decoration:line-through; text-decoration-color:var(--rule-strong);}
+.todo-item.live .mark{color:var(--accent);}
+.todo-item.wait .mark{color:var(--ink-3);}
+.todo-item.you{background:var(--against-bg);}
+.todo-item.you .mark{color:var(--against);}
+.todo-item .t{font-size:.95rem; line-height:1.55;}
+.todo-item .m{
+  display:block; margin-top:3px; font-family:var(--mono); font-size:.72rem;
+  color:var(--ink-3); line-height:1.6; word-break:break-word;
+}
+
 footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(--ink-3); font-size:.86rem;}
 
 @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
@@ -261,6 +312,55 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
 </header>
 
 <main class="wrap stack g16">
+
+<!-- ============ STATUS ============ -->
+<section class="sec" id="status">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">Where we are &nbsp;·&nbsp; 2 August 2026</div>
+      <h2>Live status</h2>
+    </div>
+    <div class="status-band">
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>English training pool built<span class="detail"> — 2,442 rows: 983 Favour, 367 Against, 1,092 None</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Test files read and normalised<span class="detail"> — 500 Hindi + 500 Bengali, IDs preserved exactly</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Code pushed to GitHub, secrets and test data excluded<span class="detail"> — repo set private for now</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>All 8 AI models verified live, teacher and judge tiers disjoint</span>
+        <span class="who">done</span></div>
+      <div class="status-row live"><span class="mark">▶</span>
+        <span>Generating the synthetic corpus<span class="detail"> — 270 cells, ~1,600 comments</span></span>
+        <span class="who">running</span></div>
+      <div class="status-row live"><span class="mark">▶</span>
+        <span>Translating the English pool into Hindi and Bengali<span class="detail"> — 2,442 rows × 2</span></span>
+        <span class="who">running</span></div>
+      <div class="status-row block"><span class="mark">!</span>
+        <span><strong>Confirm the real deadline with the organizers</strong><span class="detail"> — test data arrived after the published date; nobody knows the new one</span></span>
+        <span class="who you">you</span></div>
+      <div class="status-row block"><span class="mark">!</span>
+        <span><strong>Hand-label 40 comments</strong><span class="detail"> — ~25 min; gates all tuning and run selection</span></span>
+        <span class="who you">you</span></div>
+      <div class="status-row wait"><span class="mark">·</span>
+        <span>AI panel labels all 1,000 test comments</span><span class="who">queued</span></div>
+      <div class="status-row wait"><span class="mark">·</span>
+        <span>AI judges build the answer key, scored against your 40</span><span class="who">queued</span></div>
+      <div class="status-row wait"><span class="mark">·</span>
+        <span>Train MuRIL and XLM-R on a rented GPU</span><span class="who">queued</span></div>
+      <div class="status-row wait"><span class="mark">·</span>
+        <span>Calibrate, blend, build and validate the ZIP</span><span class="who">queued</span></div>
+    </div>
+    <p style="font-size:.95rem; color:var(--ink-2);">The two items marked
+    <strong style="color:var(--against);">you</strong> are the only things holding the
+    project up. Full detail in
+    <code>Required_Action.md</code>; the complete task list is
+    <a href="#todo">at the end of this page</a>.</p>
+  </div>
+</section>
 
 <!-- ============ THE JOB ============ -->
 <section class="sec" id="job">
@@ -1035,6 +1135,148 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
       identified. Our column detection found nothing and refused to open the real test
       files. Fixed, and column names are now matched regardless of capitalisation — the
       official files use <code>ID</code> and <code>COMMENT</code> in capitals.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ INFRASTRUCTURE ============ -->
+<section class="sec" id="infra">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">Where things live</div>
+      <h2>Infrastructure</h2>
+    </div>
+
+    <h3>This machine does the thinking, a rented GPU does the training</h3>
+    <p>This server is CPU-only, which is fine for everything except fine-tuning. The
+    API work — generating, translating, the AI panel, the judges — is all network-bound
+    and runs here happily. Only Stage&nbsp;3 wants a GPU, and only for about an hour.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>Rented GPU prices seen on 2 August</caption>
+        <thead><tr><th>GPU</th><th class="num">$/hr</th><th class="num">VRAM</th><th>Enough for us?</th></tr></thead>
+        <tbody>
+          <tr><td>RTX 2080 Ti</td><td class="num">0.071</td><td class="num">22 GB</td><td>Yes</td></tr>
+          <tr><td>RTX 3090</td><td class="num">0.103</td><td class="num">24 GB</td><td>Yes — the sweet spot</td></tr>
+          <tr><td>Tesla V100</td><td class="num">0.109</td><td class="num">16 GB</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Both backbones train in well under an hour, so <strong>the entire GPU bill for
+    this project is around fifty cents</strong> against $8.32 of credit.</p>
+
+    <div class="term"><span class="c"># nothing is spent until `up --yes`</span>
+<span class="p">$</span> python3.12 src/vast_gpu.py balance
+<span class="p">$</span> python3.12 src/vast_gpu.py search --max-price 0.30
+<span class="p">$</span> python3.12 src/vast_gpu.py up --offer &lt;id&gt; --max-hours 3 --yes
+<span class="p">$</span> python3.12 src/vast_gpu.py status --wait
+<span class="p">$</span> python3.12 src/vast_gpu.py train      <span class="c"># syncs, trains, pulls back, tears down</span>
+<span class="p">$</span> python3.12 src/vast_gpu.py down       <span class="c"># always — see the warning below</span></div>
+
+    <div class="call warn">
+      <div class="eyebrow">The one way to lose real money here</div>
+      <p>A rented instance bills every second it exists, <strong>including while doing
+      nothing</strong>. Forget one overnight and the credit is gone. <code>train</code>
+      destroys the instance when it finishes, including on failure, but if a session is
+      ever interrupted run <code>vast_gpu.py down</code> — it is safe even when nothing
+      is running — or check <a href="https://cloud.vast.ai/instances/">the instances
+      page</a> by eye.</p>
+      <p>The rented box also receives <strong>only</strong> the HuggingFace token, never
+      the other thirty-odd keys. A machine you rented by the minute from a stranger is
+      not somewhere to leave credentials.</p>
+    </div>
+
+    <h3>Repositories</h3>
+    <div class="tbl-wrap">
+      <table>
+        <caption>All private while the competition is open</caption>
+        <thead><tr><th>Where</th><th>What</th><th>Why private</th></tr></thead>
+        <tbody>
+          <tr><td><code>DevDaring/FIRE_AISOME</code></td><td>All code, strategy and this page</td><td>The strategy doc spells out the Bill Nye discovery. Make it public after results are declared</td></tr>
+          <tr><td><code>Debk/nirnay-aisome2026-setu</code></td><td>Trained model checkpoints</td><td>Publish alongside the CEUR paper</td></tr>
+          <tr><td><code>Debk/nirnay-aisome2026-data</code></td><td>Synthetic corpus + the argument taxonomy</td><td>Genuinely reusable — worth releasing with the paper</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="call">
+      <div class="eyebrow">What is deliberately not in version control</div>
+      <ul class="tight">
+        <li><code>.env</code> — 34 live API keys. Excluded, and the repo was scanned to confirm no key-shaped string reached it.</li>
+        <li><code>Dataset/Testing_Data/</code> — the organizers emailed these privately to registered teams. Republishing an evaluation set mid-competition is how a team gets disqualified.</li>
+        <li><code>artifacts/</code> — regenerable, and contains cleaned copies of those same test comments.</li>
+        <li>The public training data — linked rather than copied, since GWSD and SemEval each carry their own terms.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DETAILED TODO ============ -->
+<section class="sec" id="todo">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">Everything, in order</div>
+      <h2>The full task list</h2>
+    </div>
+    <p>Rows in red are yours. Everything else I can run.</p>
+
+    <div class="todo">
+      <div class="todo-grp">Setup — complete</div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Read the track rules and the exact submission format
+        <span class="m">one file per language · id, model1_label, model2_label, model3_label · zipped</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Forensics on the test files — found they are translated Bill Nye comments
+        <span class="m">63 and 96 mentions of Bill Nye · zero emoji · zero Roman-script code-mix</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Build the 27-node climate-argument taxonomy
+        <span class="m">Codes/src/taxonomy.py · 228 cue phrases across English, Hindi, Bengali</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Fix the two silent bugs that would have capped the score
+        <span class="m">the label "None" parsed as missing data · text columns undetectable on pandas 3</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Verify all 8 AI models are live and the two tiers do not overlap
+        <span class="m">python3.12 src/llm.py — three model IDs had been retired and were replaced</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Push code to GitHub, private, with secrets and test data excluded
+        <span class="m">28 files · token scrubbed from .git/config after pushing</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Create the HuggingFace model and dataset repos
+        <span class="m">Debk/nirnay-aisome2026-setu · Debk/nirnay-aisome2026-data</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Write the GPU rental tooling with spend guards
+        <span class="m">Codes/src/vast_gpu.py · refuses to rent above budget · auto-teardown</span></span></div>
+
+      <div class="todo-grp">Stage 0–1 — running now</div>
+      <div class="todo-item live"><span class="mark">▶</span><span class="t">Generate the synthetic corpus in translated-English style
+        <span class="m">3 generators round-robin over 270 taxonomy cells</span></span></div>
+      <div class="todo-item live"><span class="mark">▶</span><span class="t">Translate the English pool into Hindi and Bengali
+        <span class="m">batched 20 per request · every translation cached to disk</span></span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Run the AI teacher panel over all 1,000 test comments
+        <span class="m">5 models from 5 different labs · argument named before stance</span></span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Back-translate the test comments into English
+        <span class="m">recovers near-original text and feeds the judges in Stage 2</span></span></div>
+
+      <div class="todo-grp">Stage 2 — blocked on you</div>
+      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Confirm the real deadline with the organizers</strong>
+        <span class="m">email aisome.fire2026@gmail.com · also ask whether CSV or XLSX is required</span></span></div>
+      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Hand-label 40 comments (~25 minutes)</strong>
+        <span class="m">bash run_all.sh seed → fill the gold column → annotate_dev.py finalise</span></span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">AI judges build the answer key and get scored on your 40
+        <span class="m">bash run_all.sh silver · read the verdict before continuing</span></span></div>
+
+      <div class="todo-grp">Stage 3–5 — after the answer key exists</div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Rent a GPU and fine-tune MuRIL and XLM-R
+        <span class="m">~$0.50 total · both backbones in well under an hour</span></span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Self-train: distil the panel, absorb confident predictions, repeat
+        <span class="m">per-label quotas and a panel veto stop the Against class collapsing</span></span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Score the training-free NLI channel</span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Tune each model's decision rule for macro-F1
+        <span class="m">stages kept only if they actually improve the score</span></span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Blend the three local channels with weights searched on the answer key</span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Build the ZIP with strict validation, then open it and look at it</span></div>
+      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Submit the ZIP to the organizers</strong>
+        <span class="m">and record which system went into which column — the paper needs it in September</span></span></div>
+
+      <div class="todo-grp">After the deadline</div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Push checkpoints and the synthetic corpus to HuggingFace</span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Make the GitHub repo public</span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Write the CEUR working notes — due 20 September
+        <span class="m">outline already drafted in Submission/WORKING_NOTES_OUTLINE.md</span></span></div>
     </div>
   </div>
 </section>

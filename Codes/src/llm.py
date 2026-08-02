@@ -72,6 +72,25 @@ def _key(*parts) -> str:
     return hashlib.sha1("\x1f".join(str(p) for p in parts).encode("utf-8")).hexdigest()
 
 
+# NOTE the dots in the character classes. Google now issues keys shaped like
+# "AQ.Ab8RN6Kxil..." as well as the classic "AIza..." form; a class without `.`
+# stops matching at the dot and leaks the rest of the key into the log. Keep this
+# permissive — over-redacting a log line costs nothing, under-redacting burns a key.
+_SECRET_RE = re.compile(
+    r"(key=)[A-Za-z0-9_.\-]{16,}"                      # ?key=... in any URL
+    r"|AIza[0-9A-Za-z_.\-]{16,}"                       # Google, classic
+    r"|AQ\.[A-Za-z0-9_.\-]{16,}"                       # Google, newer form
+    r"|sk-(?:or-v1-|proj-|ant-)?[A-Za-z0-9_.\-]{16,}"  # OpenAI/OpenRouter/DeepSeek
+    r"|hf_[A-Za-z0-9]{16,}"                            # HuggingFace
+    r"|gh[pousr]_[A-Za-z0-9]{16,}"                     # GitHub
+    r"|github_pat_[A-Za-z0-9_]{16,}")
+
+
+def _redact(text: str) -> str:
+    """Strip anything key-shaped out of a string before it is printed."""
+    return _SECRET_RE.sub(lambda m: (m.group(1) or "") + "<redacted>", str(text))
+
+
 # ---------------------------------------------------------------------------
 # JSON coercion — LLMs wrap JSON in prose and code fences no matter what you ask
 # ---------------------------------------------------------------------------
@@ -171,7 +190,9 @@ class LLMClient:
                     return out
                 last = "empty response"
             except Exception as e:  # noqa: BLE001 — retry across keys and back off
-                last = f"{type(e).__name__}: {e}"
+                # Gemini passes the key as a URL query param, so the raw requests
+                # error text contains it. Never let a live key reach stdout or a log.
+                last = _redact(f"{type(e).__name__}: {e}")
             if attempt < tries - 1:
                 time.sleep(min(2.0 * (2 ** attempt), 30.0))
         self.n_fail += 1
@@ -226,8 +247,9 @@ class GeminiClient(LLMClient):
     def __init__(self, model: str | None = None):
         env = load_env()
         keys = env_keys("GEMINI_API_KEY", "GOOGLE_API_KEY", "Link_Gemini_Cheap_API_Key")
+        # verified live 2026-08-02; -lite and 2.0-flash 404 on some of these keys
         super().__init__(keys, model or env.get("GEMINI_MODEL_NAME",
-                                                "gemini-2.5-flash-lite"))
+                                                "gemini-2.5-flash"))
 
     def _request(self, prompt, system, temperature, max_tokens, key):
         url = ("https://generativelanguage.googleapis.com/v1beta/models/"
@@ -243,7 +265,11 @@ class GeminiClient(LLMClient):
                               timeout=DEFAULT_TIMEOUT)
         if r.status_code in (429, 500, 502, 503, 504):
             raise RuntimeError(f"HTTP {r.status_code}")
-        r.raise_for_status()
+        if not r.ok:
+            # requests puts the full URL (key included) in HTTPError; raise our own
+            raise RuntimeError(f"HTTP {r.status_code} for model {self.model} "
+                               f"(key #{self._i % len(self.keys)}): "
+                               f"{_redact(r.text)[:160]}")
         data = r.json()
         cands = data.get("candidates") or []
         if not cands:
@@ -279,8 +305,20 @@ class OpenAICompatClient(LLMClient):
         data = r.json()
         choices = data.get("choices") or []
         if not choices:
-            raise RuntimeError(f"no choices: {str(data)[:200]}")
-        return (choices[0].get("message") or {}).get("content", "").strip()
+            raise RuntimeError(f"no choices: {_redact(str(data))[:200]}")
+        msg = choices[0].get("message") or {}
+        # Reasoning models (gpt-5*, o*, deepseek-reasoner) legitimately return
+        # content: null when the whole token budget went to hidden reasoning.
+        # `.get("content", "")` yields None there, not "", so a bare .strip()
+        # raises AttributeError and the retry loop burns every key on a bug that
+        # more max_tokens would have fixed. Surface it as a real, actionable error.
+        content = msg.get("content")
+        if content is None:
+            reason = choices[0].get("finish_reason")
+            raise RuntimeError(
+                f"empty content (finish_reason={reason!r}) — if this is a reasoning "
+                f"model, raise max_tokens; it spent the budget thinking")
+        return content.strip()
 
 
 def _openrouter(model: str, cache_name: str | None = None) -> OpenAICompatClient:
@@ -313,20 +351,26 @@ def _deepseek(model: str) -> OpenAICompatClient:
         cache_name=f"ds_{model}")
 
 
+# Model ids below were verified live against the provider catalogues on
+# 2026-08-02. They churn — providers rename and retire ids without notice, and a
+# stale id fails hours into a run. Re-verify with `python3.12 src/llm.py` before
+# any long job; that is what the probe is for.
 _FACTORIES = {
     # --- DeepSeek platform (2 keys, round-robin) ---------------------------
-    "deepseek":  lambda m=None: _deepseek(m or "deepseek-chat"),
+    "deepseek":   lambda m=None: _deepseek(m or "deepseek-chat"),
     "deepseek-r": lambda m=None: _deepseek(m or "deepseek-reasoner"),
 
     # --- OpenRouter, PAID cheap models only (2 keys, round-robin) ----------
-    "or-gpt":    lambda m=None: _openrouter(m or "openai/gpt-4o-mini"),
-    "or-llama":  lambda m=None: _openrouter(m or "meta-llama/llama-3.3-70b-instruct"),
-    "or-qwen":   lambda m=None: _openrouter(m or "qwen/qwen-2.5-72b-instruct"),
-    "or-mistral": lambda m=None: _openrouter(m or "mistralai/mistral-small-24b-instruct-2501"),
-    "or-gemini": lambda m=None: _openrouter(m or "google/gemini-2.0-flash-001"),
-    "or-haiku":  lambda m=None: _openrouter(m or "anthropic/claude-3.5-haiku"),
-    "or":        lambda m=None: _openrouter(
-        m or load_env().get("OPENROUTER_PRIMARY_MODEL_NAME", "openai/gpt-4o-mini")),
+    "or-gpt":     lambda m=None: _openrouter(m or "openai/gpt-5-nano"),
+    "or-gpt-mini": lambda m=None: _openrouter(m or "openai/gpt-5-mini"),
+    "or-llama":   lambda m=None: _openrouter(m or "meta-llama/llama-4-maverick"),
+    "or-qwen":    lambda m=None: _openrouter(m or "qwen/qwen3.7-flash"),
+    "or-mistral": lambda m=None: _openrouter(m or "mistralai/mistral-nemo"),
+    "or-deepseek": lambda m=None: _openrouter(m or "deepseek/deepseek-v4-flash"),
+    "or-gemini":  lambda m=None: _openrouter(m or "google/gemini-3.5-flash-lite"),
+    "or-claude":  lambda m=None: _openrouter(m or "anthropic/claude-haiku-4.5"),
+    "or":         lambda m=None: _openrouter(
+        m or load_env().get("OPENROUTER_PRIMARY_MODEL_NAME", "openai/gpt-5-nano")),
 
     # --- direct provider APIs ----------------------------------------------
     "gemini":    lambda m=None: GeminiClient(m),
@@ -386,19 +430,25 @@ def available_providers() -> list[str]:
 #
 # All OpenRouter entries are PAID models (never ``:free`` — see _openrouter).
 # ---------------------------------------------------------------------------
+# Five distinct labs — Meta, Alibaba, OpenAI, Mistral, DeepSeek — so a shared
+# blind spot in any one pretraining corpus cannot carry a majority vote.
 TEACHER_MEMBERS = [
     # (member id, provider, model override or None)
-    ("gemini",    "gemini",     None),                # free tier, very good on Indic
-    ("deepseek",  "deepseek",   None),                # deepseek-chat (V3)
-    ("or-llama",  "or-llama",   None),                # llama-3.3-70b, paid
-    ("or-qwen",   "or-qwen",    None),                # qwen-2.5-72b, strong multilingual
-    ("or-gpt",    "or-gpt",     None),                # gpt-4o-mini, paid
+    ("or-llama",    "or-llama",    None),   # meta-llama/llama-4-maverick
+    ("or-qwen",     "or-qwen",     None),   # qwen3.7-flash — cheap, 1M ctx, strong Indic
+    ("or-gpt",      "or-gpt",      None),   # openai/gpt-5-nano
+    ("or-mistral",  "or-mistral",  None),   # mistralai/mistral-nemo
+    ("or-deepseek", "or-deepseek", None),   # deepseek/deepseek-v4-flash
 ]
 
+# Stronger tier, and no model id here appears above — assert_disjoint() enforces
+# it. Google and Anthropic are absent from TEACHER entirely; the one family that
+# does recur is OpenAI (gpt-5-nano teaches, gpt-5-mini judges), which is a real
+# though mild caveat worth stating in the working notes.
 JUDGE_MEMBERS = [
-    ("judge-r1",     "deepseek-r", None),             # deepseek-reasoner, thinks first
-    ("judge-haiku",  "or-haiku",   None),             # anthropic/claude-3.5-haiku
-    ("judge-gemini", "or-gemini",  None),             # gemini-2.0-flash via OpenRouter
+    ("judge-gemini", "or-gemini",   None),  # google/gemini-3.5-flash-lite
+    ("judge-claude", "or-claude",   None),  # anthropic/claude-haiku-4.5
+    ("judge-gpt",    "or-gpt-mini", None),  # openai/gpt-5-mini
 ]
 
 MEMBERS = TEACHER_MEMBERS          # backwards-compatible alias
@@ -459,7 +509,8 @@ def probe(tier: str | None = None, prompt: str = "Reply with exactly: OK"):
                 print(f"  ✗ {mid:14} {str(e)[:70]}")
                 bad.append((t, mid))
                 continue
-            ans = cli.chat(prompt, max_tokens=12, tries=2, use_cache=False)
+            # generous budget: reasoning models spend most of it before emitting
+            ans = cli.chat(prompt, max_tokens=2000, tries=2, use_cache=False)
             mark = "✓" if ans else "✗"
             print(f"  {mark} {mid:14} {cli.model:44} {(ans or 'NO RESPONSE')[:24]!r}")
             (ok if ans else bad).append((t, mid))
