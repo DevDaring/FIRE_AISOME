@@ -161,14 +161,31 @@ Or check by eye at <https://cloud.vast.ai/instances/>.
 ```
 [x] English training pool       2,442 rows (983 Favour / 367 Against / 1,092 None)
 [x] Test files normalised       500 Hindi + 500 Bengali, IDs preserved
-[~] Synthetic corpus            running — 270 cells, ~1,600 rows
-[~] EN -> Hindi/Bengali         running — 2,442 rows x 2 languages
-[ ] LLM committee (teacher)     next, once the two above finish
+[x] Synthetic corpus            1,040 rows, all 27 argument nodes covered
+                                48% Against vs 15% in the real pool  <-- the point
+[x] EN -> Hindi                 2,442 rows translated
+[~] EN -> Bengali               running
+[~] LLM committee (teacher)     running — 4 of 5 members done
 [ ] YOUR 40 hand labels         <-- BLOCKING, see item 2
 [ ] Silver dev set (AI judges)  needs your 40
 [ ] GPU training                needs the committee output
 [ ] Calibrate -> fuse -> submit needs the dev set
 ```
+
+### One command to re-run when you come back
+
+The committee's 5th member (`gpt-5-nano`) failed on the first pass — it is a
+reasoning model and burned its whole token budget thinking before answering. That
+is fixed now, but the running job started before the fix. Re-run it once the current
+one finishes; the other four members come straight from cache, so it only redoes the
+missing one:
+
+```bash
+cd /home/Debz/Hackathon/AISOME/Codes
+python3.12 src/llm_committee.py --test artifacts/test_hi.csv artifacts/test_bn.csv
+```
+
+A 4-member committee is perfectly usable if you would rather skip this.
 
 ---
 
