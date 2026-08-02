@@ -148,6 +148,7 @@ class LLMClient:
             raise SystemExit(f"{self.name}: no API keys found in .env")
         self.keys = keys
         self.model = model
+        self._dead: set[str] = set()
         self._i = 0
         self._klock = threading.Lock()
         self.cache = _Cache(cache_name or self.name)
@@ -159,9 +160,27 @@ class LLMClient:
     # -- key rotation --------------------------------------------------------
     def _next_key(self) -> str:
         with self._klock:
-            k = self.keys[self._i % len(self.keys)]
+            live = [k for k in self.keys if k not in self._dead]
+            if not live:                      # every key rejected: surface it
+                live = self.keys
+            k = live[self._i % len(live)]
             self._i += 1
             return k
+
+    def _mark_dead(self, key: str, why: str):
+        """Permanently retire a key that the provider says is invalid.
+
+        Two of the Gemini keys in this .env are dead. Round-robin kept handing
+        work to them, so ~40% of requests failed and every one burned a retry
+        before landing on a good key. A revoked key never recovers, so evict it
+        for the life of the process rather than rediscovering it 2,000 times.
+        """
+        with self._klock:
+            if key not in self._dead:
+                self._dead.add(key)
+                idx = self.keys.index(key) + 1 if key in self.keys else "?"
+                print(f"  [{self.name}] key #{idx} retired for this run: {why}. "
+                      f"{len(self.keys) - len(self._dead)}/{len(self.keys)} still live.")
 
     # -- provider hook -------------------------------------------------------
     def _request(self, prompt: str, system: str | None, temperature: float,
@@ -181,8 +200,9 @@ class LLMClient:
         last = None
         for attempt in range(tries):
             try:
+                key_used = self._next_key()
                 out = self._request(prompt, system, temperature, max_tokens,
-                                    self._next_key())
+                                    key_used)
                 if out:
                     self.n_calls += 1
                     if use_cache:
@@ -193,6 +213,14 @@ class LLMClient:
                 # Gemini passes the key as a URL query param, so the raw requests
                 # error text contains it. Never let a live key reach stdout or a log.
                 last = _redact(f"{type(e).__name__}: {e}")
+                low = str(e).lower()
+                if "api key not valid" in low or "api_key_invalid" in low:
+                    self._mark_dead(key_used, "provider says the key is invalid")
+                elif "no longer available" in low or "not found for api version" in low:
+                    # a retired model id — no key will fix it, so stop burning retries
+                    print(f"  [{self.name}] model {self.model!r} looks retired; "
+                          f"re-run `python3.12 src/llm.py` to refresh the roster")
+                    break
             if attempt < tries - 1:
                 time.sleep(min(2.0 * (2 ** attempt), 30.0))
         self.n_fail += 1

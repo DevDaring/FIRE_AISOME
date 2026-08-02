@@ -58,6 +58,39 @@ reliability**, and we would be tuning on labels we cannot vouch for.
 
 ---
 
+## 🟠 TWO DEAD API KEYS — replace or delete them
+
+Testing every Gemini key individually against a live model:
+
+| Key in `.env` | Result |
+|---|---|
+| `GEMINI_API_KEY_1` | ✅ works |
+| `GEMINI_API_KEY_2` | ❌ **"API key not valid"** |
+| `GEMINI_API_KEY_3` | ✅ works |
+| `GEMINI_API_KEY_4` | ✅ works |
+| `Link_Gemini_Cheap_API_Key` | ❌ **"API key not valid"** |
+
+Two of five were dead, so round-robin was sending **40% of requests to keys that
+could never succeed** — each one burning retries before landing on a good key. That is
+what caused 360 of 2,442 translation rows to fall back to slow single-row retries.
+
+**I have worked around it in code**: a key that the provider rejects as invalid is now
+retired for the rest of the run instead of being rediscovered thousands of times. But
+please still fix the source:
+
+- Either replace both with fresh keys from <https://aistudio.google.com/apikey>,
+- or delete those two lines from `.env` entirely.
+
+Three working keys is enough for everything we need, so this is not blocking.
+
+### Also fixed: a retired model was pinned in `.env`
+
+`GEMINI_MODEL_NAME` was set to `gemini-2.5-flash-lite`, which Google now rejects with
+*"no longer available to new users"*. I changed that one line to `gemini-2.5-flash`,
+which is verified working. No secret in `.env` was touched.
+
+---
+
 ## 🟡 DECISIONS I need from you
 
 ### 3. GitHub repo is now PRIVATE — confirm that is what you want
