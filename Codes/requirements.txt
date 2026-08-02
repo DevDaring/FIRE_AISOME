@@ -1,0 +1,29 @@
+# AISoMe 2026 / SETU — Python dependencies
+#
+# On this machine the ML stack lives in python3.12 (plain `python3` is 3.10 and has
+# nothing installed). Install with:
+#     python3.12 -m pip install -r requirements.txt
+#
+# torch is already present as a CPU build (2.13.0+cpu). On a GPU box or Colab,
+# install the CUDA build of torch first, then this file.
+
+torch>=2.0
+transformers>=4.44
+accelerate>=0.30            # HF Trainer needs this for the training loop
+scikit-learn>=1.4
+pandas>=2.0
+numpy>=1.26
+scipy>=1.11
+requests>=2.31              # llm.py / translate.py HTTP calls
+tqdm>=4.66
+joblib>=1.3
+
+# --- channel-specific -------------------------------------------------------
+sentence-transformers>=2.7  # LaBSE baseline (train_baseline.py)
+sentencepiece>=0.2          # XLM-R / mDeBERTa / IndicTrans2 tokenizers
+openpyxl>=3.1               # only if a test file arrives as .xlsx, or --format xlsx
+
+# --- optional ---------------------------------------------------------------
+# Rule-based Roman -> Devanagari/Bengali transliteration in normalize.py.
+# Without it, normalize.py --translit falls back to (cached) LLM transliteration.
+indic-transliteration>=2.3

@@ -1,0 +1,63 @@
+# ============================================================================
+# SECRETS — never commit. The .env in this project holds ~34 live API keys.
+# ============================================================================
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+credentials*
+secrets*
+
+# ============================================================================
+# ORGANIZER-DISTRIBUTED DATA — do not redistribute.
+# The Hindi/Bengali test files were emailed privately to registered teams.
+# Publishing them would republish the organizers' evaluation set before the
+# track has even closed. artifacts/test_*.csv are cleaned copies of the same
+# comments, so they are excluded too.
+# ============================================================================
+Codes/Dataset/Testing_Data/
+artifacts/test_*.csv
+Codes/artifacts/test_*.csv
+
+# ============================================================================
+# PUBLIC TRAINING DATA — fetched by scripts/fetch_data.sh, not vendored.
+# GWSD and SemEval-2016 each carry their own terms; link, don't copy.
+# ============================================================================
+Codes/Dataset/Training_Data/*.tsv
+Codes/Dataset/Training_Data/*.txt
+
+# ============================================================================
+# Derived artifacts — regenerable, large, and full of cached model output
+# ============================================================================
+Codes/artifacts/
+artifacts/
+*.pt
+*.bin
+*.safetensors
+*.joblib
+*.ckpt
+checkpoints/
+wandb/
+
+# ============================================================================
+# Python
+# ============================================================================
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+
+# ============================================================================
+# OS / editor
+# ============================================================================
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+Submission/Submission_Rules.pdf

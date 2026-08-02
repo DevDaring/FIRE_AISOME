@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SETU — Working Procedure | AISoMe 2026</title>
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --paper:#F3F4F0; --surface:#FBFBF9; --surface-2:#ECEEE8;
+  --ink:#191C1E; --ink-2:#565E63; --ink-3:#7C858B;
+  --rule:#D6D9D1; --rule-strong:#BFC4BA;
+  --accent:#2C3A8F; --accent-soft:#E4E7F4; --accent-line:#B9C0E4;
+  --favour:#2C6A4A; --favour-bg:#E1EDE5;
+  --against:#A83D22; --against-bg:#F6E4DC;
+  --none:#5F6975; --none-bg:#E7E9EC;
+  --code-bg:#20242B; --code-ink:#DCE2E8; --code-dim:#8A939E; --code-rule:#333943;
+  --warn:#8A5A12; --warn-bg:#F6EDDA; --warn-line:#E0CFA4;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#131518; --surface:#191C20; --surface-2:#1F2328;
+    --ink:#E9EBE6; --ink-2:#A0A8AE; --ink-3:#757D84;
+    --rule:#2A2E33; --rule-strong:#3A4046;
+    --accent:#97A0F0; --accent-soft:#1D2240; --accent-line:#39406B;
+    --favour:#74C299; --favour-bg:#16281F;
+    --against:#E3886C; --against-bg:#2E1B14;
+    --none:#949EAA; --none-bg:#21262B;
+    --code-bg:#0D0F12; --code-ink:#D3DAE1; --code-dim:#6E777F; --code-rule:#22272D;
+    --warn:#D9AE62; --warn-bg:#2A2113; --warn-line:#4A3A1C;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131518; --surface:#191C20; --surface-2:#1F2328;
+  --ink:#E9EBE6; --ink-2:#A0A8AE; --ink-3:#757D84;
+  --rule:#2A2E33; --rule-strong:#3A4046;
+  --accent:#97A0F0; --accent-soft:#1D2240; --accent-line:#39406B;
+  --favour:#74C299; --favour-bg:#16281F;
+  --against:#E3886C; --against-bg:#2E1B14;
+  --none:#949EAA; --none-bg:#21262B;
+  --code-bg:#0D0F12; --code-ink:#D3DAE1; --code-dim:#6E777F; --code-rule:#22272D;
+  --warn:#D9AE62; --warn-bg:#2A2113; --warn-line:#4A3A1C;
+}
+:root[data-theme="light"]{
+  --paper:#F3F4F0; --surface:#FBFBF9; --surface-2:#ECEEE8;
+  --ink:#191C1E; --ink-2:#565E63; --ink-3:#7C858B;
+  --rule:#D6D9D1; --rule-strong:#BFC4BA;
+  --accent:#2C3A8F; --accent-soft:#E4E7F4; --accent-line:#B9C0E4;
+  --favour:#2C6A4A; --favour-bg:#E1EDE5;
+  --against:#A83D22; --against-bg:#F6E4DC;
+  --none:#5F6975; --none-bg:#E7E9EC;
+  --code-bg:#20242B; --code-ink:#DCE2E8; --code-dim:#8A939E; --code-rule:#333943;
+  --warn:#8A5A12; --warn-bg:#F6EDDA; --warn-line:#E0CFA4;
+}
+
+/* ---------- type ---------- */
+:root{
+  --serif:"Iowan Old Style","Charter","Bitstream Charter","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --indic:"Noto Serif Devanagari","Noto Serif Bengali","Noto Sans Devanagari","Noto Sans Bengali","Nirmala UI","Kohinoor Devanagari","Bangla MN",var(--serif);
+}
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--serif); font-size:17px; line-height:1.66;
+  font-feature-settings:"kern" 1,"liga" 1;
+}
+h1,h2,h3,h4{text-wrap:balance; margin:0; line-height:1.22; font-weight:600;}
+p{margin:0;}
+a{color:var(--accent);}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px;}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px;}
+.col{max-width:68ch;}
+.stack{display:flex; flex-direction:column;}
+.g8{gap:8px;} .g12{gap:12px;} .g16{gap:16px;} .g20{gap:20px;} .g28{gap:28px;} .g40{gap:40px;}
+
+.eyebrow{
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+
+/* ---------- masthead ---------- */
+.masthead{border-bottom:1px solid var(--rule-strong); padding:56px 0 32px;}
+.mast-title{font-size:clamp(2.1rem,5.6vw,3.1rem); letter-spacing:-.018em;}
+.mast-title .setu{color:var(--accent);}
+.mast-sub{font-size:clamp(1.05rem,2.3vw,1.24rem); color:var(--ink-2); max-width:56ch;}
+.mast-meta{
+  display:flex; flex-wrap:wrap; gap:0 28px; row-gap:10px;
+  font-family:var(--mono); font-size:.76rem; color:var(--ink-2);
+  border-top:1px solid var(--rule); padding-top:18px; margin-top:8px;
+}
+.mast-meta b{color:var(--ink); font-weight:600;}
+
+/* ---------- sections ---------- */
+main{padding:44px 0 96px;}
+.sec{padding:40px 0; border-top:1px solid var(--rule);}
+.sec:first-child{border-top:none; padding-top:8px;}
+.sec-head{display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:24px;}
+.sec h2{font-size:clamp(1.45rem,3.2vw,1.8rem); letter-spacing:-.012em;}
+.sec h3{font-size:1.1rem; letter-spacing:-.004em; margin-top:4px;}
+.lead{font-size:1.13rem; color:var(--ink-2);}
+
+/* stage rows: hanging numeral gutter */
+.stage{display:grid; grid-template-columns:1fr; gap:20px; padding:40px 0; border-top:1px solid var(--rule);}
+@media (min-width:900px){
+  .stage{grid-template-columns:104px minmax(0,1fr); gap:0 40px;}
+  .stage-num{position:sticky; top:24px; align-self:start;}
+}
+.stage-num{display:flex; flex-direction:column; gap:6px;}
+.stage-num .n{
+  font-family:var(--mono); font-size:2.6rem; line-height:1; font-weight:500;
+  color:var(--accent); font-variant-numeric:tabular-nums; letter-spacing:-.03em;
+}
+.stage-num .dep{font-family:var(--mono); font-size:.66rem; line-height:1.4; color:var(--ink-3); letter-spacing:.06em; text-transform:uppercase;}
+.stage-body{display:flex; flex-direction:column; gap:20px; min-width:0;}
+.stage-body > p, .stage-body > h3, .stage-body > ul{max-width:66ch;}
+
+/* ---------- chips ---------- */
+.chip{
+  display:inline-block; font-family:var(--mono); font-size:.7rem; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:3px;
+  vertical-align:.06em; white-space:nowrap;
+}
+.chip.favour{color:var(--favour); background:var(--favour-bg);}
+.chip.against{color:var(--against); background:var(--against-bg);}
+.chip.none{color:var(--none); background:var(--none-bg);}
+.chip.node{color:var(--accent); background:var(--accent-soft); text-transform:none; letter-spacing:.02em;}
+.chip.time{color:var(--ink-2); background:var(--surface-2); text-transform:none; letter-spacing:.02em;}
+
+/* ---------- specimen (worked example) ---------- */
+.spec{
+  border:1px solid var(--rule-strong); border-radius:4px; background:var(--surface);
+  overflow:hidden;
+}
+.spec-hd{
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3); padding:9px 16px; border-bottom:1px solid var(--rule);
+  background:var(--surface-2);
+}
+.spec-row{padding:16px; display:flex; flex-direction:column; gap:10px;}
+.spec-row + .spec-row{border-top:1px solid var(--rule);}
+.spec-lab{
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3);
+}
+.spec-arrow{
+  font-family:var(--mono); font-size:.72rem; color:var(--accent); letter-spacing:.1em;
+  padding:0 16px 0; margin-top:-4px;
+}
+.indic{font-family:var(--indic); font-size:1.06rem; line-height:1.85;}
+.gloss{color:var(--ink-2); font-style:italic; font-size:.97rem;}
+.spec code{font-family:var(--mono); font-size:.85em; background:var(--surface-2); padding:1px 5px; border-radius:3px;}
+
+/* ---------- terminal ---------- */
+.term{
+  background:var(--code-bg); color:var(--code-ink); border-radius:4px;
+  font-family:var(--mono); font-size:.8rem; line-height:1.75;
+  padding:14px 16px; overflow-x:auto; border:1px solid var(--code-rule);
+}
+.term .c{color:var(--code-dim);}
+.term .p{color:var(--accent); user-select:none;}
+.term b{font-weight:600; color:#F4F7FA;}
+
+/* ---------- inline code ---------- */
+code{font-family:var(--mono); font-size:.86em;}
+p code, li code, td code{background:var(--surface-2); padding:1px 5px; border-radius:3px; color:var(--ink);}
+
+/* ---------- callout ---------- */
+.call{
+  border:1px solid var(--accent-line); background:var(--accent-soft);
+  border-radius:4px; padding:18px 20px; display:flex; flex-direction:column; gap:10px;
+}
+.call .eyebrow{color:var(--accent);}
+.call.warn{border-color:var(--warn-line); background:var(--warn-bg);}
+.call.warn .eyebrow{color:var(--warn);}
+
+/* ---------- tables ---------- */
+.tbl-wrap{overflow-x:auto; border:1px solid var(--rule-strong); border-radius:4px;}
+table{border-collapse:collapse; width:100%; font-size:.92rem;}
+caption{text-align:left; font-family:var(--mono); font-size:.68rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-3); padding:9px 14px; background:var(--surface-2);
+  border-bottom:1px solid var(--rule);}
+th,td{padding:9px 14px; text-align:left; border-bottom:1px solid var(--rule); vertical-align:top;}
+thead th{font-family:var(--mono); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-2); font-weight:600; background:var(--surface);}
+tbody tr:last-child td{border-bottom:none;}
+td.num,th.num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:.86rem;}
+
+/* ---------- diagram ---------- */
+.flow{display:grid; gap:12px;}
+.flow-band{display:grid; gap:12px; grid-template-columns:1fr;}
+@media (min-width:720px){.flow-band{grid-template-columns:repeat(3,1fr);}}
+.node{
+  border:1px solid var(--rule-strong); border-radius:4px; background:var(--surface);
+  padding:14px 16px; display:flex; flex-direction:column; gap:6px;
+}
+.node .t{font-weight:600; font-size:.98rem;}
+.node .d{font-size:.88rem; color:var(--ink-2); line-height:1.55;}
+.node .k{font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:var(--accent);}
+.merge{
+  border:1px solid var(--accent-line); background:var(--accent-soft); border-radius:4px;
+  padding:14px 16px; text-align:center; font-size:.95rem;
+}
+.down{text-align:center; font-family:var(--mono); color:var(--accent-line); font-size:1.1rem; line-height:1;}
+
+/* ---------- lists ---------- */
+ul.tight{margin:0; padding-left:1.15em; display:flex; flex-direction:column; gap:7px;}
+ul.tight li::marker{color:var(--accent);}
+ol.steps{margin:0; padding-left:1.3em; display:flex; flex-direction:column; gap:9px;}
+ol.steps li::marker{font-family:var(--mono); font-size:.85em; color:var(--accent);}
+
+/* ---------- checklist ---------- */
+.check{display:flex; flex-direction:column; gap:0; border:1px solid var(--rule-strong); border-radius:4px; overflow:hidden;}
+.check .item{display:flex; gap:12px; padding:11px 16px; align-items:flex-start; background:var(--surface);}
+.check .item + .item{border-top:1px solid var(--rule);}
+.check .box{
+  width:15px; height:15px; border:1.5px solid var(--rule-strong); border-radius:3px;
+  flex:0 0 auto; margin-top:5px;
+}
+.check .item span{font-size:.95rem;}
+
+/* ---------- contents ---------- */
+.toc{border:1px solid var(--rule-strong); border-radius:4px; background:var(--surface); overflow:hidden;}
+.toc ol{margin:0; padding:0; list-style:none;}
+.toc li{border-top:1px solid var(--rule);}
+.toc li:first-child{border-top:none;}
+.toc a{
+  display:flex; gap:14px; padding:10px 16px; text-decoration:none; color:var(--ink);
+  align-items:baseline;
+}
+.toc a:hover{background:var(--surface-2);}
+.toc .tn{font-family:var(--mono); font-size:.72rem; color:var(--accent); flex:0 0 auto; width:1.4em;}
+.toc .tt{font-size:.95rem;}
+.toc .tm{margin-left:auto; font-family:var(--mono); font-size:.68rem; color:var(--ink-3); white-space:nowrap;}
+
+footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(--ink-3); font-size:.86rem;}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important;}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap stack g16">
+    <div class="eyebrow">Team Nirnay &nbsp;·&nbsp; AISoMe 2026 @ FIRE, ISI Kolkata</div>
+    <h1 class="mast-title"><span class="setu">SETU</span> — how we build the submission</h1>
+    <p class="mast-sub">Every step of the pipeline in plain language, with a real worked
+    example from the actual test files at each stage.</p>
+    <div class="mast-meta">
+      <div><b>Team</b> &nbsp;Nirnay — निर्णय / নির্ণয়, “judgement”</div>
+      <div><b>Task</b> &nbsp;stance of a YouTube comment</div>
+      <div><b>Languages</b> &nbsp;Hindi + Bengali, 500 each</div>
+      <div><b>Score</b> &nbsp;macro-F1</div>
+      <div><b>Runs allowed</b> &nbsp;3</div>
+      <div><b>SETU</b> &nbsp;सेतु / সেতু — “bridge”</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap stack g16">
+
+<!-- ============ THE JOB ============ -->
+<section class="sec" id="job">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">The job</div>
+      <h2>Read a comment, pick one of three labels</h2>
+    </div>
+    <p>There is one fixed sentence, called <em>the claim</em>:</p>
+    <div class="call">
+      <div class="eyebrow">The claim</div>
+      <p style="font-size:1.1rem;">“Climate change and global warming is a serious concern.”</p>
+    </div>
+    <p>For each comment we decide how it relates to <em>that sentence</em>:</p>
+    <ul class="tight">
+      <li><span class="chip favour">Favour</span> &nbsp;the comment agrees with the claim</li>
+      <li><span class="chip against">Against</span> &nbsp;the comment disagrees with the claim</li>
+      <li><span class="chip none">None</span> &nbsp;the comment does not take a side on the claim</li>
+    </ul>
+
+    <div class="spec">
+      <div class="spec-hd">Three real comments from the test file</div>
+      <div class="spec-row">
+        <div class="indic">बिल नाई एक वैज्ञानिक नहीं हैं। वह एक यांत्रिक अभियंता हैं। याद रखिएगा।</div>
+        <div class="gloss">“Bill Nye is not a scientist. He is a mechanical engineer. Remember that.”</div>
+        <div><span class="chip against">Against</span> <span class="chip node">A6 · attacks the messenger</span></div>
+      </div>
+      <div class="spec-row">
+        <div class="indic">পৃথিবী ইতিমধ্যেই চলে গেছে, জলবায়ু পরিবর্তন হচ্ছে এবং বিশ্ব নেতারা এটি বন্ধ করতে খুবই অলস।</div>
+        <div class="gloss">“The earth is already gone, climate change is happening, and world leaders are too lazy to stop it.”</div>
+        <div><span class="chip favour">Favour</span> <span class="chip node">D5 · angry, but accepts the claim</span></div>
+      </div>
+      <div class="spec-row">
+        <div class="indic">ऑनलाइन कक्षाओं के लिए और कौन उपस्थित है?</div>
+        <div class="gloss">“Who else is here for online classes?”</div>
+        <div><span class="chip none">None</span> <span class="chip node">N7 · school assignment</span></div>
+      </div>
+    </div>
+
+    <div class="call">
+      <div class="eyebrow">The rule people get wrong</div>
+      <p><strong>Angry is not Against.</strong> The second comment is furious — but it is
+      furious <em>because</em> climate change is real and nobody is acting. It agrees with
+      the claim, so it is <span class="chip favour">Favour</span>. Likewise
+      “great video, thank you” is polite but says nothing about the claim, so it is
+      <span class="chip none">None</span>, not Favour.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCORING ============ -->
+<section class="sec" id="scoring">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">Why the scoring rule decides everything</div>
+      <h2>Macro-F1 makes the smallest class the most valuable</h2>
+    </div>
+    <p>Macro-F1 scores each of the three labels separately and then takes a plain
+    average. Every label counts one third — no matter how rare it is.</p>
+    <p>Our English training data is only about 15&nbsp;% <span class="chip against">Against</span>.
+    A model can simply never predict it and still look fine on accuracy. Watch what
+    macro-F1 does to that model:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>Two models on the same 500 comments</caption>
+        <thead>
+          <tr><th>Model</th><th class="num">Favour F1</th><th class="num">Against F1</th><th class="num">None F1</th><th class="num">Accuracy</th><th class="num">Macro-F1</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Ignores <span class="chip against">Against</span></td><td class="num">0.80</td><td class="num">0.00</td><td class="num">0.80</td><td class="num">0.80</td><td class="num">0.53</td></tr>
+          <tr><td>Slightly worse elsewhere, but catches <span class="chip against">Against</span></td><td class="num">0.78</td><td class="num">0.60</td><td class="num">0.78</td><td class="num">0.76</td><td class="num"><strong>0.72</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The second model is <em>less accurate</em> and wins by 0.19. Almost everything in
+    this pipeline exists to rescue the <span class="chip against">Against</span> class.
+    Keep that in mind and every later decision will make sense.</p>
+  </div>
+</section>
+
+<!-- ============ DISCOVERY ============ -->
+<section class="sec" id="discovery">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">What we found in the test files</div>
+      <h2>The comments are translated American comments, not Indian ones</h2>
+    </div>
+    <p>Before writing any model we simply read the two files the organizers sent.
+    They are not what the task description leads you to expect.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>Measured over all 1000 test comments</caption>
+        <thead><tr><th>What we counted</th><th class="num">Hindi</th><th class="num">Bengali</th></tr></thead>
+        <tbody>
+          <tr><td>Comments naming Bill Nye (बिल / বিল)</td><td class="num">63</td><td class="num">96</td></tr>
+          <tr><td>Roman-script Hinglish / Banglish</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td>Comments with any emoji</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td>Comments mentioning India</td><td class="num">2</td><td class="num">3</td></tr>
+          <tr><td>Median length (characters)</td><td class="num">146</td><td class="num">147</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Real Indian YouTube comments are short, full of emoji, and half-written in Roman
+    letters. These have <em>none</em> of that. They are formal, long, and they talk about
+    an American science presenter, the “97&nbsp;% of scientists” debate, and school
+    homework. They are English YouTube comments that were machine-translated into
+    Hindi and Bengali.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Why we are confident — real examples</div>
+      <div class="spec-row">
+        <div class="indic">मैं इस वीडियो से अधिक असहमत नहीं हो सकता और ९७% (जो एक मज़ेदार संख्या है, है ना?)</div>
+        <div class="gloss">“I couldn’t disagree more with this video, and the 97% (which is a funny number, isn’t it?)” — the American consensus argument, with the number written in Devanagari digits.</div>
+      </div>
+      <div class="spec-row">
+        <div class="indic">भगवान ने डायनासोरों को क्यों मारा?</div>
+        <div class="gloss">“Why did God kill the dinosaurs?” — creationist framing from US comment culture, not an Indian religious argument.</div>
+      </div>
+      <div class="spec-row">
+        <div class="indic">বিল নাই মার্চ লিংক বিবরণে।</div>
+        <div class="gloss">“Bill Nye merch link in the description.” — a literal translation of American channel-merch spam.</div>
+      </div>
+    </div>
+
+    <div class="call">
+      <div class="eyebrow">What this changes</div>
+      <p>Most teams will spend their effort on Hinglish, emoji and Indian slang. None of
+      that appears in the test set. We do four things instead:</p>
+      <ul class="tight">
+        <li><strong>Translate the test back to English.</strong> That undoes the
+        organizers’ translation and lands us back in the language our training data and
+        our models are strongest in.</li>
+        <li><strong>Tell the AI panel where the comments come from.</strong> One sentence
+        of context resolves whole families of confusing comments.</li>
+        <li><strong>Generate practice data in the same translated style</strong> —
+        formal, pure script, no emoji — instead of authentic-sounding Indian slang.</li>
+        <li><strong>Expect far more Against</strong> than the 15&nbsp;% in our training
+        data. Videos like these attract deniers; our samples looked closer to 40–50&nbsp;%.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WILL THEY ACCEPT AI? ============ -->
+<section class="sec" id="ai-question">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">A question that changes the design</div>
+      <h2>Will they accept an answer that is just an AI’s opinion?</h2>
+    </div>
+    <p>Short answer: <strong>they will accept it, but it will not win.</strong> We went
+    and read what FIRE actually publishes. The distinction that matters is between using
+    an AI <em>as your submitted classifier</em> and using an AI <em>to build</em> your
+    classifier.</p>
+
+    <h3>What the organizers ask for</h3>
+    <p>Their own wording is specific. The task is to “build an effective
+    <strong>classifier</strong>”, and a run contains “the predicted class by the
+    <strong>model(s) designed by the teams</strong>”. The submission email adds that they
+    may ask for the classifier plus a README in order to reproduce a run. A live API call
+    to somebody else’s chat model is not a model you designed, and it cannot be handed
+    over and re-run.</p>
+
+    <h3>What the published field looks like</h3>
+    <p>We checked the FIRE 2025 proceedings. LLM-prompting papers <em>are</em> published
+    — there is a “Prompting GPT-3.5 Turbo” paper and several zero-shot LLM papers. But
+    look at the two tracks closest to ours, both Indic social-media text classification:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>FIRE 2025 — approaches in the comparable classification tracks</caption>
+        <thead><tr><th>Track</th><th class="num">Papers</th><th>What they submitted</th></tr></thead>
+        <tbody>
+          <tr><td>HASOC (Indic hate speech)</td><td class="num">17</td><td>Fine-tuned transformers and multimodal fusion, nearly without exception</td></tr>
+          <tr><td>DravidianCodeMix (offensive language)</td><td class="num">8</td><td>Transformer fine-tuning and classical ML. No prompting papers at all</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>And on the leaderboards, fine-tuned <strong>MuRIL</strong> has taken top place in
+    these Indic tasks — the same backbone we are using. Prompting is accepted at FIRE; it
+    is simply not what wins <em>this kind</em> of track, and in 2026 it is also the least
+    novel thing anyone could submit.</p>
+
+    <h3>The pattern that is both accepted and strong</h3>
+    <p>One FIRE 2025 paper title describes our exact shape:
+    <em>“Misinformation Detection … Using <strong>LLM-Based Translation Augmentation and
+    DeBERTa Fine-Tuning</strong>”</em>. Two more tracks have papers on synthetic data
+    augmentation and silver-standard labels. So the accepted role for an LLM is as a
+    <strong>data engine</strong> — it generates, translates and labels training material,
+    and a model you trained does the actual classifying.</p>
+
+    <div class="call">
+      <div class="eyebrow">What we changed because of this</div>
+      <p><strong>All three submitted runs are now our own trained models.</strong> The AI
+      panel no longer appears in the submission at all. Instead its labels are taught to
+      our encoder during training — the panel becomes a teacher, not a contestant.</p>
+      <p>Every column we submit can be re-run from a checkpoint on a laptop with no
+      internet and no API keys. We still score the panel and report it in the paper as a
+      reference row, which is worth more as evidence than it was as a run.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>Run design, before and after</caption>
+        <thead><tr><th>Slot</th><th>Was</th><th>Now</th></tr></thead>
+        <tbody>
+          <tr><td><code>model1</code></td><td>Blend including live AI panel</td><td>Blend of <strong>local</strong> channels — MuRIL + XLM-R + the NLI reasoner</td></tr>
+          <tr><td><code>model2</code></td><td>MuRIL encoder</td><td>MuRIL encoder, calibrated <span class="chip time">unchanged</span></td></tr>
+          <tr><td><code>model3</code></td><td>AI panel, live API calls</td><td><strong>XLM-R encoder</strong>, calibrated — a second trained model</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>We give up nothing on score by doing this. Because the encoder is taught from the
+    panel’s labels on the very comments being tested, the student generally matches or
+    beats the teacher — it also sees the generated data and gets the calibration step,
+    which the raw panel does not.</p>
+  </div>
+</section>
+
+<!-- ============ SHAPE ============ -->
+<section class="sec" id="shape">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">The shape of the solution</div>
+      <h2>Three independent opinions, then one combined answer</h2>
+    </div>
+    <p>Instead of one model, we build three that are wrong in <em>different</em> ways,
+    then merge them. When three systems that fail differently agree, the answer is
+    usually right. All three run locally — the AI panel sits <em>outside</em> this
+    picture, upstream, as a teacher.</p>
+  </div>
+
+  <div class="flow" style="margin-top:24px;">
+    <div class="merge" style="background:var(--surface-2); border-color:var(--rule-strong); text-align:left;">
+      <strong>Upstream teacher (never submitted):</strong> a panel of five AI models
+      labels all 1000 test comments. Those labels become training material in Stage&nbsp;3.
+    </div>
+    <div class="down" aria-hidden="true">↓ taught to ↓</div>
+    <div class="flow-band">
+      <div class="node">
+        <div class="k">Channel A · local</div>
+        <div class="t">MuRIL, fine-tuned by us</div>
+        <div class="d">Google’s Indian-language model, trained on our translated and
+        generated data plus the panel’s labels. Tops Indic leaderboards at FIRE.</div>
+      </div>
+      <div class="node">
+        <div class="k">Channel B · local</div>
+        <div class="t">XLM-R, fine-tuned by us</div>
+        <div class="d">Same recipe, different backbone. Built differently, so it makes
+        different mistakes — which is exactly what a blend needs.</div>
+      </div>
+      <div class="node">
+        <div class="k">Channel C · local</div>
+        <div class="t">An off-the-shelf reasoner</div>
+        <div class="d">A ready-made model that judges whether a comment implies the
+        claim. Zero training, runs offline, and has never seen our data.</div>
+      </div>
+    </div>
+    <div class="down" aria-hidden="true">↓</div>
+    <div class="merge"><strong>Calibrate each one, then blend</strong> — tuned on a dev set built in Stage&nbsp;2</div>
+    <div class="down" aria-hidden="true">↓</div>
+    <div class="merge" style="background:var(--surface); border-color:var(--rule-strong);">
+      Two files, zipped &nbsp;·&nbsp; <code>id, model1_label, model2_label, model3_label</code>
+      &nbsp;·&nbsp; all three re-runnable offline
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTENTS ============ -->
+<section class="sec" id="contents">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">The six stages</div>
+      <h2>What to run, in order</h2>
+    </div>
+    <nav class="toc" aria-label="Stages">
+      <ol>
+        <li><a href="#s0"><span class="tn">0</span><span class="tt">Build the practice material</span><span class="tm">~1 hr · no test data needed</span></a></li>
+        <li><a href="#s1"><span class="tn">1</span><span class="tt">Read the test files and ask the AI panel</span><span class="tm">~1 hr</span></a></li>
+        <li><a href="#s2"><span class="tn">2</span><span class="tt">Build the answer key — 40 by hand, 300 by AI judges</span><span class="tm">~25 min of you</span></a></li>
+        <li><a href="#s3"><span class="tn">3</span><span class="tt">Train our own models</span><span class="tm">2–6 hrs · unattended</span></a></li>
+        <li><a href="#s4"><span class="tn">4</span><span class="tt">Add the third opinion, tune, and blend</span><span class="tm">~1 hr</span></a></li>
+        <li><a href="#s5"><span class="tn">5</span><span class="tt">Build and check the submission</span><span class="tm">~15 min</span></a></li>
+      </ol>
+    </nav>
+    <p style="font-size:.95rem; color:var(--ink-2);">Stage&nbsp;0 needs nothing but your
+    API keys, and it is the slowest part. Start it before anything else and let it run
+    while you read the rest of this page.</p>
+  </div>
+</section>
+
+<!-- ============ STAGE 0 ============ -->
+<section class="stage" id="s0">
+  <div class="stage-num"><div class="n">0</div><div class="dep">no test data<br>needed</div></div>
+  <div class="stage-body">
+    <div class="eyebrow">Stage zero</div>
+    <h2>Build the practice material</h2>
+    <p class="lead">We are given English training data but tested on Hindi and Bengali.
+    This stage manufactures the material that bridges the gap.</p>
+
+    <div class="term"><span class="p">$</span> bash run_all.sh stage0</div>
+
+    <h3>0a · Collect the English examples we are allowed to use</h3>
+    <p>Two public datasets are permitted. We merge them, remove duplicates, and keep the
+    crowd’s vote split rather than just the winner — an 8–0 vote is a much stronger
+    lesson than a 5–3 vote, and telling the model the difference helps.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · one row of the merged file</div>
+      <div class="spec-row">
+        <div class="spec-lab">Comment (English)</div>
+        <div>“The climate has always changed, long before humans arrived.”</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-lab">What we store</div>
+        <div><code>label = Against</code> &nbsp;·&nbsp; <code>votes = 6 Against, 2 None</code>
+        &nbsp;·&nbsp; <code>agreement = 0.75</code></div>
+      </div>
+    </div>
+
+    <p><strong>Result:</strong> 2,442 English examples — 983 Favour, 367 Against, 1,092 None.
+    Only 15&nbsp;% Against, which is exactly the problem the next step solves.</p>
+
+    <h3>0b · Generate the missing Against examples</h3>
+    <p>We wrote down 27 distinct <em>arguments</em> people use about climate change —
+    13 that reject the claim, 7 that support it, 7 that dodge it. For each argument we
+    ask an AI to write realistic comments in Hindi and Bengali, in the same formal,
+    translated style as the real test file.</p>
+    <p>Because we choose the argument, we also know the label in advance. So we can
+    produce as much <span class="chip against">Against</span> data as we like.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · one generation request and what comes back</div>
+      <div class="spec-row">
+        <div class="spec-lab">We ask for</div>
+        <div>Argument <code>A6 · attacks the messenger</code> &nbsp;→&nbsp; language Hindi
+        &nbsp;→&nbsp; tone sarcastic &nbsp;→&nbsp; 6 comments</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ generated</div>
+      <div class="spec-row">
+        <div class="indic">वाह, एक मनोरंजनकर्ता हमें जलवायु विज्ञान पढ़ा रहा है। उनकी डिग्री यांत्रिक अभियांत्रिकी में है, मित्रों।</div>
+        <div class="gloss">“Wow, an entertainer is teaching us climate science. His degree is in mechanical engineering, friends.”</div>
+        <div><span class="chip against">Against</span> — label known in advance, because we chose the argument</div>
+      </div>
+    </div>
+
+    <h3>0c · Translate the English examples into Hindi and Bengali</h3>
+    <p>So the model also sees the original training data in the test languages. We
+    translate 20 comments per request rather than one at a time — 270 requests instead of
+    5,400 — and every translation is saved to disk, so stopping and restarting costs
+    nothing.</p>
+
+    <div class="call">
+      <div class="eyebrow">The instruction that matters</div>
+      <p>The translator is told never to soften anything. In stance detection the sarcasm
+      <em>is</em> the signal. A translator that turns “what a joke” into “this is
+      questionable” has destroyed the label.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE 1 ============ -->
+<section class="stage" id="s1">
+  <div class="stage-num"><div class="n">1</div><div class="dep">needs the<br>test files</div></div>
+  <div class="stage-body">
+    <div class="eyebrow">Stage one</div>
+    <h2>Read the test files and ask the AI panel</h2>
+    <p class="lead">Now we touch the real 1000 comments — but only to read them. We never
+    see their true labels, so using them at this point is completely allowed.</p>
+
+    <div class="term"><span class="p">$</span> bash run_all.sh stage1</div>
+
+    <h3>1a · Tidy up the two spreadsheets</h3>
+    <p>The files arrive as Excel with columns <code>ID</code> and <code>COMMENT</code>.
+    We convert them to a clean table, keeping the ID exactly as written — the submission
+    must line up with the organizers’ numbering.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · before and after cleaning</div>
+      <div class="spec-row">
+        <div class="spec-lab">As received</div>
+        <div class="indic">दिल्ली में गर्मी बहुत ज्यादा है!!!!!   https://example.com/x  @someone</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ cleaned</div>
+      <div class="spec-row">
+        <div class="spec-lab">Ready for the models</div>
+        <div class="indic">दिल्ली में गर्मी बहुत ज्यादा है!!  &lt;url&gt;  &lt;user&gt;</div>
+        <div class="gloss">Links and usernames masked, runaway punctuation trimmed to two — but
+        the exclamation marks are kept, because intensity carries stance.</div>
+      </div>
+    </div>
+
+    <h3>1b · Five AI models each read all 1000 comments</h3>
+    <p>We use five <em>different</em> models — Gemini, DeepSeek, Mistral, Llama and Gemma.
+    Five different models is far more useful than asking one model five times, because
+    they were built differently and so they are wrong about different things.</p>
+    <p>Each model must first name which of our 27 arguments the comment is making, and
+    only then give a label. Forcing it to commit to a reason first stops it from
+    reacting to the mood of the comment.</p>
+    <p>Every prompt also carries one sentence of context — that these are translated
+    comments from a Bill Nye climate video. This is the discovery from earlier, turned
+    into a concrete advantage.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · one comment through the panel</div>
+      <div class="spec-row">
+        <div class="indic">জলবায়ু পরিবর্তন = সেলিব্রিটি চালিত উন্মাদনা।</div>
+        <div class="gloss">“Climate change = celebrity-driven madness.”</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ five votes</div>
+      <div class="spec-row">
+        <div class="spec-lab">The panel</div>
+        <div style="font-family:var(--mono); font-size:.84rem; line-height:1.9;">
+          Gemini &nbsp;<span class="chip against">Against</span> B5 · 0.92<br>
+          DeepSeek <span class="chip against">Against</span> B5 · 0.88<br>
+          Mistral &nbsp;<span class="chip against">Against</span> A5 · 0.80<br>
+          Llama &nbsp;&nbsp;<span class="chip against">Against</span> B5 · 0.75<br>
+          Gemma &nbsp;&nbsp;<span class="chip none">None</span> &nbsp;&nbsp;N6 · 0.40
+        </div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ combined</div>
+      <div class="spec-row">
+        <div class="spec-lab">What we record</div>
+        <div><span class="chip against">Against</span> with <code>agreement = 0.80</code>
+        — strong enough to use as a teaching example in Stage 3.</div>
+      </div>
+    </div>
+
+    <p>Comments where the panel <em>splits</em> are just as valuable. Those are the hard
+    cases, and they decide which comments you personally label in Stage 2.</p>
+
+    <h3>1c · Translate the test comments back into English</h3>
+    <p>This is the move the discovery unlocked. Translating the Hindi and Bengali back
+    into English roughly recovers the original American comments — the exact kind of text
+    our English training data is made of.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · the round trip</div>
+      <div class="spec-row">
+        <div class="spec-lab">Test file (Hindi)</div>
+        <div class="indic">बिल नाई एक वैज्ञानिक नहीं हैं। वह एक यांत्रिक अभियंता हैं।</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ back to English</div>
+      <div class="spec-row">
+        <div class="spec-lab">Recovered</div>
+        <div>“Bill Nye is not a scientist. He is a mechanical engineer.”</div>
+        <div class="gloss">Almost certainly close to what the original commenter typed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STAGE 2 ============ -->
+<section class="stage" id="s2">
+  <div class="stage-num"><div class="n">2</div><div class="dep">25 min<br>by hand</div></div>
+  <div class="stage-body">
+    <div class="eyebrow">Stage two</div>
+    <h2>Build the answer key — 25 minutes of you, the rest by AI judges</h2>
+    <p class="lead">We need Hindi and Bengali comments with known correct answers.
+    Without them we cannot tune anything or pick between our three runs. Here is how to
+    get them mostly automatically without fooling ourselves.</p>
+
+    <div class="call warn">
+      <div class="eyebrow">The trap in “just let an AI label it”</div>
+      <p>If the same models that form our teacher panel also build the answer key, then
+      when we measure the panel against that key it scores near-perfect — by
+      construction. Every tuning constant would then be fitted to the panel’s own blind
+      spots, and we would ship something worse than if we had never tuned at all.</p>
+      <p>The fix is not to avoid AI labelling. It is to make the labellers
+      <strong>independent</strong> of everything they are used to judge, and then to
+      <strong>measure how good they actually are</strong>.</p>
+    </div>
+
+    <h3>Four safeguards</h3>
+    <ol class="steps">
+      <li><strong>A separate, stronger panel of judges.</strong> The judges share no model
+      with the teacher panel — the code refuses to run if they overlap. Judges are
+      reasoning-capable models (DeepSeek Reasoner, Claude Haiku, Gemini Flash); the
+      teachers are the cheaper tier.</li>
+      <li><strong>Judge in English.</strong> We already back-translated every test comment
+      in Stage 1. Every model is markedly more reliable in English than in Hindi or
+      Bengali, so judges see the original <em>and</em> the English side by side.</li>
+      <li><strong>A second judge tries to prove the first one wrong.</strong> Only labels
+      that survive the challenge are kept. Challenged ones go to a short human queue
+      instead of being guessed.</li>
+      <li><strong>You label 40 comments by hand as an anchor.</strong> We never tune on
+      those 40 — we use them to score the judges. That turns “we hope the AI labels are
+      good” into a number.</li>
+    </ol>
+
+    <div class="term"><span class="c"># 1. hand-label 40 comments — about 25 minutes</span>
+<span class="p">$</span> bash run_all.sh seed
+<span class="c">#    fill the `gold` column, then:</span>
+<span class="p">$</span> python3.12 src/annotate_dev.py finalise \
+      --input artifacts/seed_to_annotate.csv --out artifacts/seed_gold.csv
+
+<span class="c"># 2. AI judges label 300 more and get scored on your 40</span>
+<span class="p">$</span> bash run_all.sh silver</div>
+
+    <div class="spec">
+      <div class="spec-hd">Example · one comment through the judging pipeline</div>
+      <div class="spec-row">
+        <div class="spec-lab">Original (Hindi) + back-translation, shown together</div>
+        <div class="indic">तूफान पहले की तुलना में कम बार और कम हिंसक होते हैं। वैश्विक तापन का इन सब से कोई लेना-देना नहीं है।</div>
+        <div class="gloss">“Storms are less frequent and less violent than before. Global warming has nothing to do with any of this.”</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ three judges rule, in English</div>
+      <div class="spec-row">
+        <div class="spec-lab">Judges</div>
+        <div style="font-family:var(--mono); font-size:.84rem; line-height:1.9;">
+          DeepSeek Reasoner &nbsp;<span class="chip against">Against</span> A3 · 0.91<br>
+          Claude Haiku &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip against">Against</span> A3 · 0.88<br>
+          Gemini Flash &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip against">Against</span> A2 · 0.85
+        </div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ challenger tries to refute</div>
+      <div class="spec-row">
+        <div class="spec-lab">Challenge</div>
+        <div>“Agree — the comment denies the impacts are worsening and explicitly severs
+        the link to warming.” &nbsp;→&nbsp; survives, kept as
+        <span class="chip against">Against</span></div>
+      </div>
+    </div>
+
+    <div class="call">
+      <div class="eyebrow">Read the verdict before you continue</div>
+      <p>At the end the tool prints how well the judges matched <em>your</em> 40:</p>
+      <ul class="tight">
+        <li><strong>0.85 or above — SAFE.</strong> Use the AI-built key for tuning and blending. Carry on.</li>
+        <li><strong>0.70 to 0.85 — USABLE.</strong> Carry on, but also label the queue of challenged comments before trusting the blend weights.</li>
+        <li><strong>Below 0.70 — UNSAFE.</strong> Do not tune on it. Spend the two hours and label 150 yourself: <code>bash run_all.sh annotate</code>.</li>
+      </ul>
+      <p>Whatever the number is, it goes in the paper. “We used LLM judges and measured
+      them against human labels at 0.87” is a contribution; “we used LLM judges” is a
+      reviewer’s objection.</p>
+    </div>
+
+    <h3>The four rules for your 40</h3>
+    <ol class="steps">
+      <li><strong>Angry is not Against.</strong> “Shame on the government for this pollution” accepts the claim → <span class="chip favour">Favour</span>.</li>
+      <li><strong>Praising the video is not agreeing.</strong> “Very informative, thank you” → <span class="chip none">None</span>.</li>
+      <li><strong>Hypocrisy cuts both ways.</strong> “They fly private jets, so it’s all drama” rejects the claim → <span class="chip against">Against</span>. “They fly private jets, they should act first” accepts it → <span class="chip favour">Favour</span>.</li>
+      <li><strong>If you truly cannot decide, type <code>?</code></strong> — it is dropped, and we report how many were unclear.</li>
+    </ol>
+    <p>The teacher panel’s guess is deliberately hidden from your sheet so it cannot
+    anchor you. Comments are chosen mostly from where the panel <em>split</em>, because
+    those sit on the decision boundary and teach us the most.</p>
+  </div>
+</section>
+
+<!-- ============ STAGE 3 ============ -->
+<section class="stage" id="s3">
+  <div class="stage-num"><div class="n">3</div><div class="dep">runs<br>unattended</div></div>
+  <div class="stage-body">
+    <div class="eyebrow">Stage three</div>
+    <h2>Train our own model</h2>
+    <p class="lead">Now we teach a compact model everything the panel knows, so we own a
+    system that needs no API keys and can be handed to the organizers.</p>
+
+    <div class="term"><span class="p">$</span> bash run_all.sh stage2</div>
+
+    <h3>3a · One model, two jobs</h3>
+    <p>The model is asked to predict two things at once: the label, and <em>which of the
+    27 arguments</em> the comment uses. The second job is the interesting one. It stops
+    the model memorising surface words like “hoax” and pushes it to recognise the shape
+    of the argument — which is what actually carries across languages.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · what the model is trained to output</div>
+      <div class="spec-row">
+        <div class="spec-lab">Input</div>
+        <div class="indic">এই ৯৭% সংখ্যাটা কোথা থেকে এল? কেউ জানে না।</div>
+        <div class="gloss">“Where did this 97% number come from? Nobody knows.”</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ two answers</div>
+      <div class="spec-row">
+        <div class="spec-lab">Output</div>
+        <div>Label: <span class="chip against">Against</span> &nbsp;·&nbsp;
+        Argument: <span class="chip node">A5 · the science is unreliable</span></div>
+      </div>
+    </div>
+
+    <h3>3b · Learn from the panel, then from itself</h3>
+    <p>We train the model on everything at once: the English data, its Hindi and Bengali
+    translations, the generated comments, and the real test comments labelled by the
+    panel. Then we repeat: the model predicts the test set, we take the predictions it is
+    most confident about, add them to its lessons, and train again.</p>
+
+    <div class="call warn">
+      <div class="eyebrow">The trap we guard against</div>
+      <p>Left alone, this loop eats its own tail: the model is least confident about
+      <span class="chip against">Against</span>, so it adds almost no Against examples,
+      gets worse at Against, and spirals. We fix that two ways — new examples are
+      admitted with a <strong>quota per label</strong>, and a prediction is
+      <strong>rejected outright</strong> if all five panel models said something else.</p>
+    </div>
+
+    <p>After each round we print the score on your 150 hand-labelled comments. That is
+    the only honest number, and it tells us which round to keep.</p>
+  </div>
+</section>
+
+<!-- ============ STAGE 4 ============ -->
+<section class="stage" id="s4">
+  <div class="stage-num"><div class="n">4</div><div class="dep">needs your<br>150 labels</div></div>
+  <div class="stage-body">
+    <div class="eyebrow">Stage four</div>
+    <h2>Add the third opinion, tune, and blend</h2>
+
+    <div class="term"><span class="p">$</span> bash run_all.sh stage3</div>
+
+    <h3>4a · The third opinion, with no training at all</h3>
+    <p>We take a ready-made model whose only skill is deciding whether one sentence
+    follows from another, and ask it three questions about every comment.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · three questions, three scores</div>
+      <div class="spec-row">
+        <div class="spec-lab">Comment</div>
+        <div class="indic">আমাদের সন্তানদের জন্য আমরা কী রেখে যাচ্ছি?</div>
+        <div class="gloss">“What are we leaving behind for our children?”</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ scored against each statement</div>
+      <div class="spec-row">
+        <div class="spec-lab">Scores</div>
+        <div style="font-family:var(--mono); font-size:.84rem; line-height:1.9;">
+          “This comment agrees the claim is serious”&nbsp;&nbsp;<b>0.71</b><br>
+          “This comment denies the claim is serious”&nbsp;&nbsp;0.09<br>
+          “This comment gives no opinion”&nbsp;&nbsp;0.20
+        </div>
+        <div><span class="chip favour">Favour</span></div>
+      </div>
+    </div>
+
+    <h3>4b · Tune the decision rule — the cheapest points available</h3>
+    <p>Every model outputs three numbers per comment, and normally you just take the
+    biggest. But “take the biggest” aims at accuracy, and we are scored on macro-F1.
+    Since <span class="chip against">Against</span> is rare, the model is shy about it,
+    and the honest fix is to lower the bar for that one label.</p>
+    <p>We find how far to lower it using your 150 hand-labelled comments.</p>
+
+    <div class="spec">
+      <div class="spec-hd">Example · from the pipeline test, on a model that under-predicts Against</div>
+      <div class="spec-row">
+        <div class="spec-lab">Before tuning</div>
+        <div style="font-family:var(--mono); font-size:.86rem;">Favour 292 &nbsp; None 199 &nbsp; Against 9 &nbsp;&nbsp;→&nbsp;&nbsp; macro-F1 <b>0.55</b></div>
+        <div class="gloss">Only 9 comments out of 500 called Against. That single number is capping the score.</div>
+      </div>
+      <div class="spec-arrow" aria-hidden="true">↓ lower the bar for Against by 2.9×</div>
+      <div class="spec-row">
+        <div class="spec-lab">After tuning</div>
+        <div style="font-family:var(--mono); font-size:.86rem;">Favour 189 &nbsp; None 249 &nbsp; Against 62 &nbsp;&nbsp;→&nbsp;&nbsp; macro-F1 <b>0.77</b></div>
+        <div class="gloss">Same model, same predictions underneath. Only the decision rule changed. +0.22.</div>
+      </div>
+    </div>
+
+    <p>Three tuning tricks are tried, and each is <strong>kept only if it actually
+    improves the score</strong> on your labelled comments. One of them regularly makes
+    things worse, so it gets thrown away automatically rather than quietly damaging the
+    submission.</p>
+
+    <h3>4c · Blend the three channels</h3>
+    <p>We combine the three sets of numbers, giving each channel a weight. The weights
+    are chosen by trying combinations and keeping whichever scores best on your 150
+    comments.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>Pipeline test — each channel alone, versus blended</caption>
+        <thead><tr><th>System</th><th class="num">Macro-F1</th></tr></thead>
+        <tbody>
+          <tr><td>Our model alone, tuned</td><td class="num">0.77</td></tr>
+          <tr><td>AI panel alone</td><td class="num">0.61</td></tr>
+          <tr><td>Ready-made reasoner alone</td><td class="num">0.45</td></tr>
+          <tr><td>Simple majority vote of the three</td><td class="num">0.75</td></tr>
+          <tr><td><strong>Weighted blend</strong></td><td class="num"><strong>0.97</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.92rem; color:var(--ink-2);">These come from a synthetic test of
+    the plumbing, not from real data, so the absolute numbers mean nothing. What matters
+    is the ordering: blending beats every single channel, and a plain majority vote
+    throws away most of the benefit because it ignores how confident each model was.</p>
+  </div>
+</section>
+
+<!-- ============ STAGE 5 ============ -->
+<section class="stage" id="s5">
+  <div class="stage-num"><div class="n">5</div><div class="dep">final</div></div>
+  <div class="stage-body">
+    <div class="eyebrow">Stage five</div>
+    <h2>Build and check the submission</h2>
+    <p class="lead">The format is unusual and easy to get wrong. Getting it wrong is a
+    zero, so the tool refuses to produce a file unless everything checks out.</p>
+
+    <div class="term"><span class="p">$</span> bash run_all.sh submit</div>
+
+    <p>Two files — one Hindi, one Bengali — zipped together. All three of our systems go
+    <em>side by side as columns in the same file</em>, not as three separate files:</p>
+
+    <div class="term">id,model1_label,model2_label,model3_label
+1,Against,Against,Against
+2,None,None,Favour
+3,Favour,Favour,Favour
+<span class="c">… 500 rows …</span></div>
+
+    <div class="tbl-wrap">
+      <table>
+        <caption>What goes in each column — every one a model we trained</caption>
+        <thead><tr><th>Column</th><th>System</th><th>Why it is included</th></tr></thead>
+        <tbody>
+          <tr><td><code>model1_label</code></td><td>The three local channels blended</td><td>Our strongest system</td></tr>
+          <tr><td><code>model2_label</code></td><td>MuRIL, fine-tuned and tuned</td><td>One checkpoint, one command — the run the organizers can most easily reproduce</td></tr>
+          <tr><td><code>model3_label</code></td><td>XLM-R, fine-tuned and tuned</td><td>A second trained model on a different backbone; shows the recipe is not backbone-specific</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Only your <em>best</em> column counts for the ranking, so this costs nothing — and
+    it hands the working notes its main results table for free.</p>
+
+    <div class="call">
+      <div class="eyebrow">Note the absence</div>
+      <p>The AI panel is not in this table. Everything we submit is a classifier we
+      trained, and every column can be regenerated from a saved checkpoint with no
+      internet connection. The panel’s contribution is already inside these models,
+      taught to them in Stage 3.</p>
+    </div>
+
+    <div class="call">
+      <div class="eyebrow">What the checker refuses to let through</div>
+      <ul class="tight">
+        <li>Any comment ID from the organizers’ file missing a prediction</li>
+        <li>Row count not matching the original file</li>
+        <li>Any label that is not exactly <code>Favour</code>, <code>Against</code> or <code>None</code></li>
+        <li>Any blank cell</li>
+      </ul>
+      <p>It also warns loudly if a column predicts the same label for all 500 comments —
+      that is always a bug, and it would score near zero.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PITFALLS ============ -->
+<section class="sec" id="pitfalls">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">Already fixed, worth knowing</div>
+      <h2>Two silent bugs that would have cost the competition</h2>
+    </div>
+
+    <div class="call warn">
+      <div class="eyebrow">Bug 1 · the word “None” disappearing</div>
+      <p>One of our three labels is the word <code>None</code>. The spreadsheet library
+      we use treats that word as “empty cell”. So every time we saved and reloaded the
+      training data, <strong>1,092 of 2,442 rows silently vanished</strong> — a third of
+      the data, one whole label, and no error message anywhere. It would have looked like
+      a two-label problem and capped the score around 0.45.</p>
+      <p>Fixed everywhere by reading files through one shared function that switches that
+      behaviour off.</p>
+    </div>
+
+    <div class="call warn">
+      <div class="eyebrow">Bug 2 · the test files failing to load at all</div>
+      <p>A recent version change in the same library altered how text columns are
+      identified. Our column detection found nothing and refused to open the real test
+      files. Fixed, and column names are now matched regardless of capitalisation — the
+      official files use <code>ID</code> and <code>COMMENT</code> in capitals.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHECKLIST ============ -->
+<section class="sec" id="checklist">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">Before you submit</div>
+      <h2>Final checklist</h2>
+    </div>
+    <div class="check">
+      <div class="item"><div class="box" aria-hidden="true"></div><span><code>python3.12 src/llm.py</code> run — every teacher and judge model answers, and the two tiers are disjoint</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Stage 0 finished — generated comments and translations are saved</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>AI panel has run on both languages, and the agreement figures look sane</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>40 comments labelled by hand</strong>, and the judges scored <strong>0.70 or better</strong> against them</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Our trained models beat the AI panel on the answer key</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>No submitted column depends on an API call</strong> — all three are local checkpoints</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Tuning applied per language, and it improved rather than hurt the score</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>The blend beats every single channel on your 150 comments</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Submission built with checking on — no warnings suppressed</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>ZIP opened and eyeballed: correct header, 500 rows per file, IDs in the original order</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>No column predicts a single label for every comment</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Noted down which system went into which column — you will need it for the paper in September</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>Deadline confirmed with the organizers</strong> — the test data arrived after the date originally published, so the schedule has clearly moved</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REMEMBER ============ -->
+<section class="sec" id="remember">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">If you remember nothing else</div>
+      <h2>Five sentences</h2>
+    </div>
+    <ol class="steps" style="font-size:1.06rem;">
+      <li>The test comments are <strong>translated American comments</strong>, so translate them back to English and tell your models where they came from.</li>
+      <li>The score is macro-F1, so <strong>the rare Against label is worth as much as the common ones</strong> — protect it in every single step.</li>
+      <li><strong>Submit models you trained, never a live AI call.</strong> The AI is a teacher, not a contestant; that is the pattern FIRE publishes and the one their reproducibility clause expects.</li>
+      <li><strong>Label 40 comments yourself</strong> so you can measure the AI judges. Unmeasured AI labels are worse than no labels, because they make you confident while being wrong.</li>
+      <li><strong>Never just take the biggest number.</strong> Tuning the decision rule was worth more than most modelling changes — then open the ZIP and look at it before uploading.</li>
+    </ol>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    SETU · AISoMe 2026, FIRE · Indian Statistical Institute, Kolkata ·
+    Full technical rationale in <code>Codes/STRATEGY.md</code>, paper plan in
+    <code>Submission/WORKING_NOTES_OUTLINE.md</code>
+  </div>
+</footer>
+
+</body>
+</html>
