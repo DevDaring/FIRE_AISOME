@@ -339,16 +339,32 @@ class OpenAICompatClient(LLMClient):
         self.extra_headers = extra_headers or {}
         super().__init__(keys, model, cache_name=cache_name or name)
 
+    # Model families that reason before answering. Their hidden reasoning is
+    # billed against max_tokens, so a budget sized for the answer alone returns
+    # finish_reason="length" with content: null — the model thought until it ran
+    # out and never spoke. Detected by name because the API does not advertise it.
+    _REASONING = ("gpt-5", "o1-", "o3-", "o4-", "reasoner", "-thinking",
+                  "qwq", "deepseek-r1")
+
+    @property
+    def is_reasoning(self) -> bool:
+        m = self.model.lower()
+        return any(t in m for t in self._REASONING)
+
     def _request(self, prompt, system, temperature, max_tokens, key):
         msgs = ([{"role": "system", "content": system}] if system else []) + \
                [{"role": "user", "content": prompt}]
         headers = {"Authorization": f"Bearer {key}",
                    "Content-Type": "application/json", **self.extra_headers}
+        body = {"model": self.model, "messages": msgs,
+                "temperature": temperature, "max_tokens": max_tokens}
+        if self.is_reasoning:
+            # Ask for the least reasoning the model will do, and make room for it
+            # on top of the answer budget rather than out of it.
+            body["reasoning"] = {"effort": "low", "exclude": True}
+            body["max_tokens"] = max(max_tokens * 4, 8000)
         r = self.session.post(f"{self.base_url}/chat/completions", headers=headers,
-                              json={"model": self.model, "messages": msgs,
-                                    "temperature": temperature,
-                                    "max_tokens": max_tokens},
-                              timeout=DEFAULT_TIMEOUT)
+                              json=body, timeout=DEFAULT_TIMEOUT)
         if r.status_code in (429, 500, 502, 503, 504):
             raise RuntimeError(f"HTTP {r.status_code}")
         r.raise_for_status()
@@ -585,3 +601,33 @@ if __name__ == "__main__":
         print("\ntiers are disjoint ✓")
     except SystemExit as e:
         print(f"\n{e}")
+
+
+def purge_bad_cache(pattern: str = "*") -> int:
+    """Rewrite cache files, dropping entries whose body will not parse as JSON.
+
+    ``chat_json`` evicts poisoned entries from memory, but the JSONL on disk is
+    append-only, so a fresh process reloads them and replays the same failure.
+    Run this once after fixing whatever produced the truncated output.
+    """
+    removed = 0
+    for path in sorted(CACHE_DIR.glob(f"llm_{pattern}.jsonl")):
+        keep, dropped = [], 0
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            try:
+                rec = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            v = rec.get("v", "")
+            # only judge entries that were clearly meant to be JSON
+            if v.lstrip().startswith(("{", "[", "```")) and extract_json(v) is None:
+                dropped += 1
+                continue
+            keep.append(line)
+        if dropped:
+            path.write_text("\n".join(keep) + "\n", encoding="utf-8")
+            print(f"  {path.name}: dropped {dropped} unparseable entries, "
+                  f"kept {len(keep)}")
+            removed += dropped
+    print(f"purged {removed} poisoned cache entries")
+    return removed
