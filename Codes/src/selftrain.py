@@ -41,8 +41,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from common import (ARTIFACTS_DIR, LABELS, SEED, read_csv, score_report, set_seed,
-                    write_json)
+from common import (ARTIFACTS_DIR, BASE_DIR, LABELS, SEED, read_csv,
+                    score_report, set_seed, write_json)
 
 SOFT_COLS = ["p_favour", "p_against", "p_none"]
 
@@ -191,6 +191,10 @@ def main():
 
     set_seed(args.seed)
     src = Path(__file__).resolve().parent
+    # Child commands take paths like 'artifacts/train_en.csv', which are
+    # relative to Codes/, not Codes/src/. Running them from src/ made every
+    # input invisible and the round died with 'no training data loaded'.
+    workdir = BASE_DIR
     outroot = Path(args.out)
     outroot.mkdir(parents=True, exist_ok=True)
 
@@ -224,7 +228,7 @@ def main():
         if Path(args.dev).exists():
             cmd += ["--dev", args.dev]
         print("  $ " + " ".join(cmd))
-        subprocess.run(cmd, check=True, cwd=str(src))
+        subprocess.run(cmd, check=True, cwd=str(workdir))
 
         # predict the test sets with this round's student
         prob_paths = []
@@ -235,7 +239,7 @@ def main():
                             "--model", str(rdir), "--test", tpath,
                             "--out", str(dest), "--text-col", args.text_col,
                             "--max-len", str(args.max_len)],
-                           check=True, cwd=str(src))
+                           check=True, cwd=str(workdir))
             prob_paths.append(str(dest))
 
         rec = {"round": rnd, "pool_rows": len(pool),
