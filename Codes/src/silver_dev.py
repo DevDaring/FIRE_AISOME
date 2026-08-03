@@ -167,6 +167,18 @@ Return exactly:
 """
 
 
+def _uid(item) -> str:
+    """Composite key for a comment.
+
+    Both organizer test files are numbered 1..500, so `id` alone is NOT unique
+    across the pooled sample. Keying vote dicts on it silently collapses Hindi and
+    Bengali onto each other — the later batch overwrites the earlier and every
+    Hindi comment then receives the Bengali comment's verdict. The symptom was two
+    judges each reporting exactly 500/1000 adjudicated on a 1000-row pool.
+    """
+    return f"{item['lang']}:{item['id']}"
+
+
 # ---------------------------------------------------------------------------
 def _parse_labels(res, items) -> dict:
     out = {}
@@ -192,9 +204,9 @@ def _parse_labels(res, items) -> dict:
             conf = float(v.get("confidence", 0.7))
         except (TypeError, ValueError):
             conf = 0.7
-        out[str(it["id"])] = {"stance": stance, "node": node,
-                              "reason": str(v.get("reason", ""))[:220],
-                              "confidence": min(max(conf, 0.0), 1.0)}
+        out[_uid(it)] = {"stance": stance, "node": node,
+                         "reason": str(v.get("reason", ""))[:220],
+                         "confidence": min(max(conf, 0.0), 1.0)}
     return out
 
 
@@ -208,7 +220,7 @@ def _parse_reviews(res, items) -> dict:
         if not isinstance(v, dict):
             continue
         corrected = normalize_label(v.get("correct_stance", ""), default=None)
-        out[str(it["id"])] = {
+        out[_uid(it)] = {
             "agree": bool(v.get("agree", True)),
             "correct_stance": corrected or it["stance"],
             "why": str(v.get("why", ""))[:220],
@@ -231,7 +243,7 @@ def run_judges(items: list[dict], members, batch: int, workers: int,
         v = {}
         for chunk, res in zip(chunks, results):
             v.update(_parse_labels(res, chunk))
-        missing = [it for it in items if str(it["id"]) not in v]
+        missing = [it for it in items if _uid(it) not in v]
         if missing:
             singles = cli.chat_many([build_judge_prompt([m]) for m in missing],
                                     system=_SYSTEM, temperature=temperature,
@@ -379,7 +391,7 @@ def main():
     # ---- consensus ----------------------------------------------------------
     rows = []
     for it in items:
-        cid = str(it["id"])
+        cid = _uid(it)
         cast = [(m, v[cid]) for m, v in votes.items() if cid in v]
         if not cast:
             rows.append({**it, "silver": None, "judge_agree": 0.0, "reason": "",
@@ -402,13 +414,14 @@ def main():
         print("\n--- pass 2: adversarial refutation ---")
         # the refuter is the judge that did NOT propose most of the labels
         refuter = judges[-1]
-        props = [{"id": r["id"], "text": r["text"], "text_en": r["text_en"],
-                  "stance": r["silver"], "reason": r["reason"]}
+        props = [{"id": r["id"], "lang": r["lang"], "text": r["text"],
+                  "text_en": r["text_en"], "stance": r["silver"],
+                  "reason": r["reason"]}
                  for _, r in adj.iterrows() if r["silver"]]
         reviews = run_refutation(props, refuter, args.batch, args.workers)
         agree, flipped = [], 0
         for _, r in adj.iterrows():
-            rv = reviews.get(str(r["id"]))
+            rv = reviews.get(f"{r['lang']}:{r['id']}")
             if rv is None:
                 agree.append(True)
                 continue
@@ -438,7 +451,7 @@ def main():
     # numbers, and together they bound how much trust the silver set deserves.
     from llm_committee import fleiss_kappa
     strong_votes = [[v[cid]["stance"] for v in votes.values() if cid in v]
-                    for cid in adj["id"].astype(str)]
+                    for cid in (adj["lang"].astype(str) + ":" + adj["id"].astype(str))]
     kappa = fleiss_kappa(strong_votes)
     report["judge_panel_fleiss_kappa"] = round(float(kappa), 4)
     print(f"\n{'='*70}\nRELIABILITY EVIDENCE (no human labels involved)")

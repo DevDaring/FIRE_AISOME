@@ -24,10 +24,14 @@ say "watchdog started for instance $IID (will retry for up to ${MAX_MIN}m)"
 DEADLINE=$(( $(date +%s) + MAX_MIN * 60 ))
 
 while [ "$(date +%s)" -lt "$DEADLINE" ]; do
-    # DELETE is idempotent: 200 on a live instance, error on an already-dead one.
+    # Vast.ai splits its API by version and it is NOT the same split for every verb:
+    # DELETE an instance works on v0, while LISTing instances works on v1 (v0 is 410
+    # Gone). Sending DELETE to v1 returns 404 — which naively reads as "already
+    # destroyed" and is a catastrophic false positive: this watchdog reported
+    # "nothing billing" while the GPU kept running and had burned $0.57.
     CODE=$(curl -s --max-time 25 -o /tmp/vw.json -w '%{http_code}' \
         -X DELETE -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' \
-        -d '{}' "https://console.vast.ai/api/v1/instances/$IID/" 2>/dev/null) || true
+        -d '{}' "https://console.vast.ai/api/v0/instances/$IID/" 2>/dev/null) || true
     CODE="${CODE: -3}"        # curl already writes 000 on failure; keep one copy
 
     if [ "$CODE" = "200" ]; then
@@ -35,10 +39,25 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
         rm -f artifacts/vast_instance.json
         exit 0
     fi
-    if [ "$CODE" = "404" ]; then
-        say "instance $IID no longer exists — nothing billing"
+    # Never trust an error code as proof of destruction. Only a LIST that does not
+    # contain the id ends this loop.
+    LIVE=$(curl -s --max-time 25 -H "Authorization: Bearer $KEY" \
+        "https://console.vast.ai/api/v1/instances/" 2>/dev/null \
+        | python3 -c "import json,sys
+try:
+    ids=[str(i.get('id')) for i in (json.load(sys.stdin).get('instances') or [])]
+    print('YES' if '$IID' in ids else 'NO')
+except Exception:
+    print('UNKNOWN')" 2>/dev/null || echo UNKNOWN)
+    if [ "$LIVE" = "NO" ]; then
+        say "confirmed by instance list: $IID is gone — billing stopped"
         rm -f artifacts/vast_instance.json
         exit 0
+    fi
+    if [ "$LIVE" = "YES" ]; then
+        say "http $CODE but instance $IID is STILL LISTED — retrying in 120s"
+        sleep 120
+        continue
     fi
     if [ "$CODE" = "000" ]; then
         say "vast.ai unreachable (DNS/network) — retrying in 120s"
