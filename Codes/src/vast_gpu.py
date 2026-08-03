@@ -40,10 +40,42 @@ import requests
 
 from common import ARTIFACTS_DIR, BASE_DIR, load_env, write_json
 
-API = "https://console.vast.ai/api/v0"
+# Vast.ai has split its API across versions and returns 410 with an explanatory
+# body when you hit a retired path. As of 2026-08-03: /bundles/, /asks/ and
+# /users/ are still v0; /instances/ has moved to v1 and v0 is Gone. _req() routes
+# per-path so a future move only needs an entry here.
+API_HOST = "https://console.vast.ai/api"
+_V1_PREFIXES = ("/instances",)
+
+
+def _api_base(path: str) -> str:
+    return f"{API_HOST}/v1" if path.startswith(_V1_PREFIXES) else f"{API_HOST}/v0"
 STATE = ARTIFACTS_DIR / "vast_instance.json"
 # CUDA + torch preinstalled; matches the transformers stack in requirements.txt
 IMAGE = "pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime"
+
+# Resolve the exact (torch, cuda, cpython, abi) tuple ON the remote and fetch the
+# matching release wheel. Building from source on a rented box takes 20-40 minutes
+# and frequently OOMs the compiler, which is pure wasted rental.
+FLASH_INSTALL = r"""
+python - <<'PY'
+import subprocess, sys, torch, re
+cu = "cu" + torch.version.cuda.replace(".", "")[:3] if torch.version.cuda else "cu121"
+cu = "cu12" if cu.startswith("cu12") else "cu11"
+tv = ".".join(torch.__version__.split("+")[0].split(".")[:2])
+py = f"cp{sys.version_info.major}{sys.version_info.minor}"
+abi = "TRUE" if torch._C._GLIBCXX_USE_CXX11_ABI else "FALSE"
+base = "https://github.com/Dao-AILab/flash-attention/releases/download"
+for ver in ("v2.7.4.post1", "v2.6.3", "v2.5.9.post1"):
+    whl = (f"{base}/{ver}/flash_attn-{ver.lstrip('v')}+{cu}torch{tv}cxx11abi{abi}"
+           f"-{py}-{py}-linux_x86_64.whl")
+    print("trying", whl, flush=True)
+    if subprocess.run([sys.executable, "-m", "pip", "install", "-q", whl]).returncode == 0:
+        print("installed", ver); break
+else:
+    print("no matching pre-compiled wheel; sdpa will be used instead")
+PY
+"""
 
 
 def _key() -> str:
@@ -54,14 +86,26 @@ def _key() -> str:
 
 
 def _req(method: str, path: str, **kw):
-    r = requests.request(method, f"{API}{path}",
+    r = requests.request(method, f"{_api_base(path)}{path}",
                          headers={"Authorization": f"Bearer {_key()}"},
                          timeout=60, **kw)
+    if r.status_code == 410:
+        # the deprecation body names the replacement path — surface it rather than
+        # a bare HTTPError, because a failed `down` means an instance keeps billing
+        try:
+            msg = r.json().get("msg", r.text[:200])
+        except Exception:
+            msg = r.text[:200]
+        raise SystemExit(
+            f"Vast.ai retired {path}: {msg}\n"
+            f"  Update _V1_PREFIXES in src/vast_gpu.py. If an instance is running, "
+            f"destroy it now at https://cloud.vast.ai/instances/ — it is still billing.")
     r.raise_for_status()
     return r.json() if r.text.strip() else {}
 
 
-def _offers(max_price: float, min_vram: int, disk: int, limit: int = 20) -> list:
+def _offers(max_price: float, min_vram: int, disk: int, limit: int = 20,
+            min_compute_cap: float = 0.0) -> list:
     """Search rentable offers.
 
     Verified 2026-08-02: this is ``GET /bundles/`` with the filter JSON in a ``q``
@@ -75,6 +119,11 @@ def _offers(max_price: float, min_vram: int, disk: int, limit: int = 20) -> list
         "dph_total": {"lte": max_price},
         "disk_space": {"gte": disk},
         "inet_down": {"gte": 100},
+        # compute_cap is reported x100: 750 == 7.5 (Turing), 860 == 8.6 (Ampere).
+        # flash-attn needs >= 8.0, i.e. 800. Getting this scale wrong silently
+        # returns Turing cards that cannot run flash attention at all.
+        **({"compute_cap": {"gte": int(round(min_compute_cap * 100))}}
+           if min_compute_cap else {}),
         "order": [["dph_total", "asc"]],
         "type": "on-demand",
         "limit": limit,
@@ -95,7 +144,8 @@ def cmd_balance(args):
 
 
 def cmd_search(args):
-    offers = _offers(args.max_price, args.min_vram, args.disk)
+    offers = _offers(args.max_price, args.min_vram, args.disk,
+                     min_compute_cap=args.min_compute_cap)
     if not offers:
         print(f"no offers under ${args.max_price}/hr with >={args.min_vram}GB VRAM. "
               f"Raise --max-price or lower --min-vram.")
@@ -103,8 +153,8 @@ def cmd_search(args):
     print(f"{'offer_id':>10}  {'$/hr':>6}  {'GPU':<22} {'VRAM':>6} {'net↓':>7}  loc")
     for o in offers[:12]:
         print(f"{o['id']:>10}  {o['dph_total']:>6.3f}  {o['gpu_name'][:22]:<22} "
-              f"{o['gpu_ram'] / 1024:>5.0f}G {o.get('inet_down', 0):>6.0f}M  "
-              f"{o.get('geolocation', '?')}")
+              f"{o['gpu_ram'] / 1024:>5.0f}G  cc{float(o.get('compute_cap') or 0)/100:.1f} "
+              f"{o.get('inet_down', 0):>6.0f}M  {o.get('geolocation', '?')}")
     cheapest = offers[0]
     print(f"\ncheapest: offer {cheapest['id']} at ${cheapest['dph_total']:.3f}/hr "
           f"→ {args.hours}h would cost ~${cheapest['dph_total'] * args.hours:.2f}")
@@ -113,17 +163,30 @@ def cmd_search(args):
 
 def cmd_up(args):
     credit = cmd_balance(args)
-    offers = _offers(args.max_price, args.min_vram, args.disk)
+    offers = _offers(args.max_price, args.min_vram, args.disk,
+                     min_compute_cap=args.min_compute_cap)
     if not offers:
         raise SystemExit("no offers matched — run `search` and adjust the limits")
 
-    offer = next((o for o in offers if o["id"] == args.offer), offers[0]) \
-        if args.offer else offers[0]
+    if args.offer:
+        offer = next((o for o in offers if o["id"] == args.offer), None)
+        if offer is None:
+            # Falling back to offers[0] here silently rents a DIFFERENT machine than
+            # the one requested — which is how we ended up on a Turing card that
+            # cannot run flash-attn. Refuse instead.
+            raise SystemExit(
+                f"offer {args.offer} is no longer available (or does not match the "
+                f"filters). Offers churn every few minutes. Re-run `search` and pass "
+                f"a current id, or omit --offer to take the cheapest match.")
+    else:
+        offer = offers[0]
     price, projected = offer["dph_total"], offer["dph_total"] * args.max_hours
 
     print(f"\nabout to rent:")
+    cc = float(offer.get("compute_cap") or 0) / 100
     print(f"  offer     {offer['id']}  {offer['gpu_name']}  "
-          f"{offer['gpu_ram'] / 1024:.0f}GB")
+          f"{offer['gpu_ram'] / 1024:.0f}GB  compute {cc:.1f}"
+          f"{'  (flash-attn capable)' if cc >= 8.0 else '  (pre-Ampere: sdpa only)'}")
     print(f"  price     ${price:.3f}/hr")
     print(f"  budget    {args.max_hours}h → ~${projected:.2f} of your ${credit:.2f}")
     if price > args.max_price:
@@ -157,8 +220,9 @@ def _instance(iid=None):
             raise SystemExit("no artifacts/vast_instance.json — nothing to act on. "
                              "Check https://cloud.vast.ai/instances/ manually.")
         iid = json.loads(STATE.read_text())["instance_id"]
-    for inst in _req("GET", "/instances/").get("instances", []):
-        if inst["id"] == iid:
+    data = _req("GET", "/instances/")
+    for inst in (data.get("instances") if isinstance(data, dict) else data) or []:
+        if inst.get("id") == iid:
             return inst
     return None
 
@@ -211,7 +275,9 @@ def _ssh_base(inst):
 
 
 def _run_remote(inst, cmd, check=True):
-    full = _ssh_base(inst) + [cmd]
+    # `set -o pipefail` so `python ... | tail` surfaces python's exit code rather
+    # than tail's. Without it every remote failure looks like success.
+    full = _ssh_base(inst) + [f"set -o pipefail; {cmd}"]
     print(f"  remote$ {cmd[:110]}")
     return subprocess.run(full, check=check)
 
@@ -232,7 +298,8 @@ def cmd_train(args):
     slim.chmod(0o600)
 
     print("uploading code and training data ...")
-    _run_remote(inst, f"mkdir -p {remote}/src {remote}/artifacts")
+    _run_remote(inst, f"mkdir -p {remote}/src {remote}/artifacts "
+                      f"/root/.cache/huggingface")
     scp = ["scp", "-o", "StrictHostKeyChecking=no", "-o",
            "UserKnownHostsFile=/dev/null", "-o", "LogLevel=ERROR", "-P", str(port)]
     subprocess.run(scp + [str(p) for p in (BASE_DIR / "src").glob("*.py")]
@@ -249,28 +316,111 @@ def cmd_train(args):
     subprocess.run(scp + [str(p) for p in payload]
                    + [f"root@{host}:{remote}/artifacts/"], check=True)
 
-    _run_remote(inst, f"cd {remote} && pip install -q -r requirements.txt 2>&1 | tail -3")
-    _run_remote(inst, "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader")
+    # Authenticate the box with HuggingFace. An unauthenticated IP gets 429s from
+    # the Hub partway through a multi-model run — which is how xlm-roberta-base
+    # failed after MuRIL had already downloaded fine. Written to the standard token
+    # file (mode 600) rather than passed on a command line, so it never lands in
+    # shell history or `ps` output on a machine we rented from a stranger.
+    hf = env.get("HUGGINGFACE_TOKEN", "")
+    if hf:
+        tok_local = ARTIFACTS_DIR / ".hf_token"
+        tok_local.write_text(hf, encoding="utf-8")
+        tok_local.chmod(0o600)
+        subprocess.run(scp + [str(tok_local),
+                              f"root@{host}:/root/.cache/huggingface/token"], check=True)
+        tok_local.unlink()
+        _run_remote(inst, "chmod 600 /root/.cache/huggingface/token && "
+                          "python -c \"from huggingface_hub import whoami; "
+                          "print('HF authenticated as', whoami()['name'])\" "
+                          "|| echo 'HF auth check failed (will still try anonymously)'",
+                    check=False)
+
+    import transformers as _tf
+    pins = f"transformers=={_tf.__version__} accelerate>=0.26"
+    print(f"pinning remote libs to local parity: {pins}")
+    _run_remote(inst, f"cd {remote} && pip install -q {pins} "
+                      f"sentencepiece scikit-learn pandas 'numpy<3' 2>&1 | tail -5")
+    _run_remote(inst, "python -c \"import torch, transformers, sklearn, pandas; "
+                      "print('torch', torch.__version__, '| transformers', "
+                      "transformers.__version__, '| cuda', torch.cuda.is_available())\"")
+    _run_remote(inst, "nvidia-smi --query-gpu=name,memory.total,compute_cap "
+                      "--format=csv,noheader")
+
+    # --- flash attention, from a PRE-COMPILED wheel ------------------------
+    # Building flash-attn from source takes 20-40 min on a rented box and often
+    # OOMs the compiler; the release wheels are matched to (torch, cuda, python,
+    # abi) so we resolve those on the remote and fetch the matching artifact.
+    # Falls through to PyTorch sdpa if no wheel matches, which is fine: at
+    # seq_len 128 attention is not the bottleneck and the two are within noise.
+    if not args.no_flash:
+        print("\n--- installing pre-compiled flash-attn ---")
+        _run_remote(inst, f"cd {remote} && " + FLASH_INSTALL, check=False)
+        _run_remote(inst, "python -c \"import flash_attn, torch; "
+                          "print('flash-attn', flash_attn.__version__, "
+                          "'torch', torch.__version__)\" "
+                          "|| echo 'flash-attn NOT available -> will use sdpa'",
+                    check=False)
 
     pool = " ".join(f"artifacts/{n}" for n in
                     ("train_en.csv", "train_en.to-hi.csv::text_hi",
                      "train_en.to-bn.csv::text_bn", "synth_train.csv")
                     if (ARTIFACTS_DIR / n.split("::")[0]).exists())
+    dev_flag = " --dev artifacts/dev_gold.csv" \
+        if (ARTIFACTS_DIR / "dev_gold.csv").exists() else ""
+
+    # --- DRY RUN first ------------------------------------------------------
+    # A 200-row/1-epoch pass exercises every code path that the full run uses —
+    # tokeniser, custom two-head model, collator, attention backend, fp16/bf16,
+    # checkpoint save — in about a minute. Finding a bug here costs a minute of
+    # rental; finding it 40 minutes into the real run costs the run.
+    print(f"\n{'='*68}\nDRY RUN on the GPU (200 rows, 1 epoch)\n{'='*68}")
+    dry = subprocess.run(_ssh_base(inst) + [
+        f"set -o pipefail; cd {remote} && python src/train_transformer.py --train {pool} "
+        f"--model {args.backbone} --out artifacts/_dryrun --max-train 200 "
+        f"--epochs 1 --batch {args.batch} --attn {args.attn} {'--bf16' if args.bf16 else ''} "
+        f"2>&1 | tail -20"], check=False)
+    if dry.returncode != 0:
+        print("\nDRY RUN FAILED — not starting the full run. The instance is still up;")
+        print("fix the problem and re-run `train`, or `down` to stop billing.")
+        return
+    print("\ndry run clean — starting the full run")
+
     for backbone, out in ((args.backbone, "model_setu"),
                           (args.backbone2, "model_xlmr")):
         if not backbone:
             continue
-        print(f"\n--- training {backbone} on the GPU ---")
+        print(f"\n{'='*68}\nFULL RUN: {backbone}\n{'='*68}")
         _run_remote(inst, (
             f"cd {remote} && python src/train_transformer.py --train {pool} "
             f"--model {backbone} --out artifacts/{out} --epochs {args.epochs} "
             f"--batch {args.batch} --aux-weight 0.3 --soft-alpha 0.4 "
-            f"2>&1 | tail -25"), check=False)
+            f"--attn {args.attn} {'--bf16' if args.bf16 else ''}{dev_flag} "
+            f"2>&1 | tail -30"), check=False)
 
-    print("\npulling checkpoints back ...")
+    # Pull ONLY what inference needs. The HF Trainer also writes a checkpoints/
+    # tree with per-epoch optimizer state — ~900 MB per epoch, useless to us, and
+    # large enough that scp broke the pipe partway through and lost the run's real
+    # output. Enumerate the files we want instead of recursing the directory.
+    print("\npulling checkpoints back (inference files only) ...")
+    WANTED = ("setu_model.pt", "metrics.json", "config.json", "tokenizer.json",
+              "tokenizer_config.json", "special_tokens_map.json",
+              "sentencepiece.bpe.model", "vocab.txt", "spiece.model",
+              "added_tokens.json")
     for out in ("model_setu", "model_xlmr"):
-        subprocess.run(scp + ["-r", f"root@{host}:{remote}/artifacts/{out}",
-                              str(ARTIFACTS_DIR) + "/"], check=False)
+        dest = ARTIFACTS_DIR / out
+        dest.mkdir(parents=True, exist_ok=True)
+        listed = subprocess.run(
+            _ssh_base(inst) + [f"ls {remote}/artifacts/{out} 2>/dev/null"],
+            capture_output=True, text=True)
+        present = set(listed.stdout.split())
+        files = [f for f in WANTED if f in present]
+        if not files:
+            print(f"  {out}: nothing to pull (training may have failed)")
+            continue
+        srcs = [f"root@{host}:{remote}/artifacts/{out}/{f}" for f in files]
+        r = subprocess.run(scp + srcs + [str(dest) + "/"], check=False)
+        print(f"  {out}: {len(files)} files"
+              f"{'' if r.returncode == 0 else '  <- scp reported an error'}")
     slim.unlink(missing_ok=True)
     print("done")
     if not args.keep_up:
@@ -290,6 +440,9 @@ def main():
     s = sub.add_parser("search", help="list offers — spends nothing")
     s.add_argument("--max-price", type=float, default=0.40, help="$/hr ceiling")
     s.add_argument("--min-vram", type=int, default=16, help="GB")
+    s.add_argument("--min-compute-cap", type=float, default=8.0,
+                   help="minimum CUDA compute capability; flash-attn needs 8.0 "
+                        "(Ampere). Pass 0 to allow older cards.")
     s.add_argument("--disk", type=int, default=40, help="GB")
     s.add_argument("--hours", type=float, default=4, help="for the cost estimate")
     s.set_defaults(func=cmd_search)
@@ -298,6 +451,9 @@ def main():
     u.add_argument("--offer", type=int, default=None)
     u.add_argument("--max-price", type=float, default=0.40)
     u.add_argument("--min-vram", type=int, default=16)
+    u.add_argument("--min-compute-cap", type=float, default=8.0,
+                   help="minimum CUDA compute capability; flash-attn needs 8.0 "
+                        "(Ampere). Pass 0 to allow older cards.")
     u.add_argument("--disk", type=int, default=40)
     u.add_argument("--max-hours", type=float, default=4,
                    help="budget check only; does not auto-stop")
@@ -314,6 +470,12 @@ def main():
     t.add_argument("--backbone2", default="xlm-roberta-base")
     t.add_argument("--epochs", type=float, default=3)
     t.add_argument("--batch", type=int, default=32)
+    t.add_argument("--attn", default="auto",
+                   choices=["auto", "flash", "sdpa", "eager"])
+    t.add_argument("--bf16", action="store_true",
+                   help="bf16 rather than fp16 — safer with flash attn on Ampere+")
+    t.add_argument("--no-flash", action="store_true",
+                   help="skip the flash-attn install and just use sdpa")
     t.add_argument("--keep-up", action="store_true",
                    help="do NOT destroy the instance afterwards")
     t.set_defaults(func=cmd_train)

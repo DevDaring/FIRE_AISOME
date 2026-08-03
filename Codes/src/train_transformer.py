@@ -126,11 +126,15 @@ def oversample(df: pd.DataFrame, seed: int) -> pd.DataFrame:
 
 # ---------------------------------------------------------------------------
 def build_model(model_name: str, aux_weight: float, class_weights, soft_alpha: float,
-                label_smoothing: float):
+                label_smoothing: float, attn: str = "auto"):
     """A HF sequence-classification model with an extra argument-node head."""
     import torch
     import torch.nn as nn
     from transformers import AutoConfig, AutoModel
+
+    def _no_pool(name: str) -> bool:
+        n = name.lower()
+        return "roberta" in n and "muril" not in n
 
     class SetuStanceModel(nn.Module):
         def __init__(self):
@@ -139,10 +143,29 @@ def build_model(model_name: str, aux_weight: float, class_weights, soft_alpha: f
                 model_name, num_labels=len(LABELS),
                 id2label={int(i): l for i, l in ID2LABEL.items()},
                 label2id=dict(LABEL2ID))
+            # Attention backend. flash_attention_2 is only implemented for some
+            # architectures; sdpa is PyTorch's fused kernel (flash under the hood),
+            # works everywhere, and at seq_len 128 the two are within noise of each
+            # other anyway — attention is not the bottleneck at this length.
+            kw = {}
+            if attn != "eager":
+                order = (["flash_attention_2", "sdpa"] if attn in ("auto", "flash")
+                         else [attn])
+                for impl in order:
+                    try:
+                        AutoModel.from_pretrained(model_name, config=self.config,
+                                                  attn_implementation=impl,
+                                                  **({"add_pooling_layer": False}
+                                                     if _no_pool(model_name) else {}))
+                        kw["attn_implementation"] = impl
+                        print(f"  attention backend: {impl}")
+                        break
+                    except (ValueError, ImportError, RuntimeError, OSError) as e:
+                        print(f"  {impl} unavailable ({type(e).__name__}), trying next")
+            if _no_pool(model_name):
+                kw["add_pooling_layer"] = False
             self.encoder = AutoModel.from_pretrained(model_name, config=self.config,
-                                                     add_pooling_layer=False) \
-                if "roberta" in model_name.lower() and "muril" not in model_name.lower() \
-                else AutoModel.from_pretrained(model_name, config=self.config)
+                                                     **kw)
             h = self.config.hidden_size
             self.dropout = nn.Dropout(getattr(self.config, "hidden_dropout_prob", 0.1))
             self.stance_head = nn.Linear(h, len(LABELS))
@@ -229,6 +252,11 @@ def main():
                     choices=["class_weight", "oversample", "none"])
     ap.add_argument("--grad-accum", type=int, default=1)
     ap.add_argument("--max-train", type=int, default=0, help="smoke test with N rows")
+    ap.add_argument("--attn", default="auto",
+                    choices=["auto", "flash", "flash_attention_2", "sdpa", "eager"],
+                    help="attention kernel; 'auto' tries flash_attention_2 then sdpa")
+    ap.add_argument("--bf16", action="store_true",
+                    help="bf16 instead of fp16 (safer on Ampere+ with flash attn)")
     ap.add_argument("--seed", type=int, default=SEED)
     args = ap.parse_args()
 
@@ -302,7 +330,7 @@ def main():
         return batch
 
     model = build_model(args.model, args.aux_weight, class_weights, args.soft_alpha,
-                        args.label_smoothing)
+                        args.label_smoothing, attn=args.attn)
 
     def metrics(p):
         logits = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
@@ -326,7 +354,8 @@ def main():
         load_best_model_at_end=va is not None,
         metric_for_best_model="macro_f1",
         greater_is_better=True,
-        fp16=(dev_name == "cuda"),
+        fp16=(dev_name == "cuda" and not args.bf16),
+        bf16=(dev_name == "cuda" and args.bf16),
         dataloader_num_workers=2,
         report_to=[],
         seed=args.seed,
