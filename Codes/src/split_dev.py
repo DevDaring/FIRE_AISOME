@@ -73,9 +73,14 @@ def main():
         sub = distil[distil["lang"] == lang]
         if not len(sub):
             continue
+        # Written to satisfy BOTH consumers: selftrain.py reads committee-format
+        # (`committee_label` + `agreement`), train_transformer.py reads `label`.
+        # Emitting only one of them makes the file silently unusable by the other —
+        # train_transformer just reports "no 'label' column" and exits.
         out = pd.DataFrame({
             "id": sub["id"], "lang": lang,
             "text": sub["text"] if "text" in sub.columns else "",
+            "label": sub["gold"],
             "committee_label": sub["gold"],
             # judge_agree is the panel's internal agreement on that row; use it as
             # the per-row sample weight so split rows teach proportionally less
@@ -84,8 +89,11 @@ def main():
             "node_id": sub["node"] if "node" in sub.columns else "UNK",
         })
         for lab in LABELS:
-            out[f"p_{lab.lower()}"] = (out["committee_label"] == lab).astype(float)
+            out[f"p_{lab.lower()}"] = (out["label"] == lab).astype(float)
         out["entropy"] = 0.0
+        # train_transformer.py uses `weight` as the per-row sample weight; keep it
+        # in step with the committee-format `agreement` column
+        out["weight"] = out["agreement"]
         dest = Path(args.outdir) / f"distil_{lang}.csv"
         out.to_csv(dest, index=False)
         print(f"  distil_{lang}.csv: {len(out)} rows "
