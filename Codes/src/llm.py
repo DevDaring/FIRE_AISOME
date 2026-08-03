@@ -1,10 +1,12 @@
 """Unified multi-provider LLM client: key rotation, disk cache, JSON coercion.
 
-The .env in this repo holds several keys per provider (GEMINI_API_KEY_1..4,
-OPENROUTER_API_KEY_1..2, DEEPSEEK_API_KEY_1..2, MISTRAL_API_KEY1..2). Rotating
-across them multiplies the free-tier rate limit, which is what makes a
-5-model committee over 1000 comments plus ~10k synthetic generations feasible
-inside the free tiers.
+No Google. Every provider here is DeepSeek's own API or a PAID model on
+OpenRouter, by project decision — no GCP service and no Gemini is called
+anywhere in this pipeline.
+
+The .env holds two keys each for DeepSeek and OpenRouter; rotating across them
+doubles the usable rate limit, which is what makes a 5-model committee over
+1000 comments plus ~1k synthetic generations comfortable.
 
 Everything is cached to artifacts/cache/llm_<provider>.jsonl keyed by
 sha1(model | prompt | system | temperature | seed), so an interrupted run resumes
@@ -16,7 +18,7 @@ model) triples used by llm_committee.py so that the working notes can name them.
 Usage
 -----
     from llm import get_client, MEMBERS
-    cli = get_client("gemini")
+    cli = get_client("deepseek")
     print(cli.chat("Say hi", system="Be terse."))
     print(cli.chat_json('Return {"a":1}'))
     outs = cli.chat_many([...prompts...], workers=8)
@@ -170,10 +172,10 @@ class LLMClient:
     def _mark_dead(self, key: str, why: str):
         """Permanently retire a key that the provider says is invalid.
 
-        Two of the Gemini keys in this .env are dead. Round-robin kept handing
-        work to them, so ~40% of requests failed and every one burned a retry
-        before landing on a good key. A revoked key never recovers, so evict it
-        for the life of the process rather than rediscovering it 2,000 times.
+        A revoked key never recovers, so evict it for the life of the process
+        rather than rediscovering it thousands of times. Round-robin over a list
+        containing dead keys sends a proportional share of all traffic to certain
+        failure, and each one burns the full retry ladder first.
         """
         with self._klock:
             if key not in self._dead:
@@ -210,8 +212,8 @@ class LLMClient:
                     return out
                 last = "empty response"
             except Exception as e:  # noqa: BLE001 — retry across keys and back off
-                # Gemini passes the key as a URL query param, so the raw requests
-                # error text contains it. Never let a live key reach stdout or a log.
+                # Some providers echo the request URL (query params included) into
+                # their error text. Never let a live key reach stdout or a log.
                 last = _redact(f"{type(e).__name__}: {e}")
                 low = str(e).lower()
                 if "api key not valid" in low or "api_key_invalid" in low:
@@ -279,53 +281,6 @@ class LLMClient:
         return {"provider": self.name, "model": self.model, "keys": len(self.keys),
                 "live_calls": self.n_calls, "cache_hits": self.n_cached,
                 "failures": self.n_fail}
-
-
-# ---------------------------------------------------------------------------
-# Google Gemini (native REST)
-# ---------------------------------------------------------------------------
-class GeminiClient(LLMClient):
-    name = "gemini"
-
-    def __init__(self, model: str | None = None):
-        env = load_env()
-        keys = env_keys("GEMINI_API_KEY", "GOOGLE_API_KEY", "Link_Gemini_Cheap_API_Key")
-        # verified live 2026-08-02; -lite and 2.0-flash 404 on some of these keys
-        super().__init__(keys, model or env.get("GEMINI_MODEL_NAME",
-                                                "gemini-2.5-flash"))
-
-    def _request(self, prompt, system, temperature, max_tokens, key):
-        url = ("https://generativelanguage.googleapis.com/v1beta/models/"
-               f"{self.model}:generateContent")
-        # Gemini 2.5 thinks by default, and the thinking tokens come out of
-        # maxOutputTokens. On a 20-item batch translation that silently truncates
-        # the JSON mid-object: the batch fails to parse, every row falls back to a
-        # slow single-row retry, and a 10-minute job becomes a 3-hour one. We do
-        # not need chain-of-thought to translate or to fill a fixed schema, so
-        # turn it off and give the whole budget to the answer.
-        body = {
-            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": temperature,
-                                 "maxOutputTokens": max_tokens,
-                                 "thinkingConfig": {"thinkingBudget": 0}},
-        }
-        if system:
-            body["systemInstruction"] = {"parts": [{"text": system}]}
-        r = self.session.post(url, params={"key": key}, json=body,
-                              timeout=DEFAULT_TIMEOUT)
-        if r.status_code in (429, 500, 502, 503, 504):
-            raise RuntimeError(f"HTTP {r.status_code}")
-        if not r.ok:
-            # requests puts the full URL (key included) in HTTPError; raise our own
-            raise RuntimeError(f"HTTP {r.status_code} for model {self.model} "
-                               f"(key #{self._i % len(self.keys)}): "
-                               f"{_redact(r.text)[:160]}")
-        data = r.json()
-        cands = data.get("candidates") or []
-        if not cands:
-            raise RuntimeError(f"no candidates: {str(data)[:200]}")
-        parts = (cands[0].get("content") or {}).get("parts") or []
-        return "".join(p.get("text", "") for p in parts).strip()
 
 
 # ---------------------------------------------------------------------------
@@ -431,15 +386,14 @@ _FACTORIES = {
     "or-gpt-mini": lambda m=None: _openrouter(m or "openai/gpt-5-mini"),
     "or-llama":   lambda m=None: _openrouter(m or "meta-llama/llama-4-maverick"),
     "or-qwen":    lambda m=None: _openrouter(m or "qwen/qwen3.7-flash"),
+    "or-qwen-plus": lambda m=None: _openrouter(m or "qwen/qwen3.7-plus"),
     "or-mistral": lambda m=None: _openrouter(m or "mistralai/mistral-nemo"),
     "or-deepseek": lambda m=None: _openrouter(m or "deepseek/deepseek-v4-flash"),
-    "or-gemini":  lambda m=None: _openrouter(m or "google/gemini-3.5-flash-lite"),
     "or-claude":  lambda m=None: _openrouter(m or "anthropic/claude-haiku-4.5"),
     "or":         lambda m=None: _openrouter(
         m or load_env().get("OPENROUTER_PRIMARY_MODEL_NAME", "openai/gpt-5-nano")),
 
     # --- direct provider APIs ----------------------------------------------
-    "gemini":    lambda m=None: GeminiClient(m),
     "mistral":   lambda m=None: OpenAICompatClient(
         "mistral", env_keys("MISTRAL_API_KEY"),
         m or load_env().get("MISTRAL_MODEL_NAME", "mistral-small-latest"),
@@ -508,13 +462,15 @@ TEACHER_MEMBERS = [
 ]
 
 # Stronger tier, and no model id here appears above — assert_disjoint() enforces
-# it. Google and Anthropic are absent from TEACHER entirely; the one family that
-# does recur is OpenAI (gpt-5-nano teaches, gpt-5-mini judges), which is a real
-# though mild caveat worth stating in the working notes.
+# it. Anthropic is absent from TEACHER entirely. Two families recur across tiers
+# but at very different capability points: OpenAI (gpt-5-nano teaches, gpt-5-mini
+# judges) and Qwen (3.7-flash teaches, 3.7-plus judges). State that plainly in the
+# working notes rather than claiming full independence.
 JUDGE_MEMBERS = [
-    ("judge-gemini", "or-gemini",   None),  # google/gemini-3.5-flash-lite
     ("judge-claude", "or-claude",   None),  # anthropic/claude-haiku-4.5
+    ("judge-r1",     "deepseek-r",  None),  # deepseek-reasoner, thinks before answering
     ("judge-gpt",    "or-gpt-mini", None),  # openai/gpt-5-mini
+    ("judge-qwen",   "or-qwen-plus", None), # qwen3.7-plus, strongest cheap Indic model
 ]
 
 MEMBERS = TEACHER_MEMBERS          # backwards-compatible alias
@@ -592,8 +548,7 @@ if __name__ == "__main__":
     import sys
     print("providers with keys:", available_providers())
     for label, prefixes in (("deepseek", ("DEEPSEEK_API_KEY",)),
-                            ("openrouter", ("OPENROUTER_API_KEY",)),
-                            ("gemini", ("GEMINI_API_KEY", "GOOGLE_API_KEY"))):
+                            ("openrouter", ("OPENROUTER_API_KEY",))):
         print(f"  {label:11} {len(env_keys(*prefixes))} key(s) in round-robin")
     probe(sys.argv[1] if len(sys.argv) > 1 else None)
     try:

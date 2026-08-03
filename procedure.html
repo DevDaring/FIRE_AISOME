@@ -345,11 +345,18 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
       <div class="status-row block"><span class="mark">!</span>
         <span><strong>Confirm the real deadline with the organizers</strong><span class="detail"> — test data arrived after the published date; nobody knows the new one</span></span>
         <span class="who you">you</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>All Google/Gemini API usage removed<span class="detail"> — every provider is now DeepSeek's own API or a paid OpenRouter model</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Test comments back-translated to English<span class="detail"> — 1,000 in 75 seconds on DeepSeek, zero retries</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row live"><span class="mark">▶</span>
+        <span>Four strong AI judges building the answer key<span class="detail"> — 300 comments, adversarially challenged; replaces the 40 hand labels</span></span>
+        <span class="who">running</span></div>
       <div class="status-row block"><span class="mark">!</span>
-        <span><strong>Hand-label 40 comments</strong><span class="detail"> — ~25 min; gates all tuning and run selection</span></span>
+        <span><strong>Spot-check 15 comments</strong><span class="detail"> — ~5 min; the one thing an AI cannot do for itself (see below)</span></span>
         <span class="who you">you</span></div>
-      <div class="status-row wait"><span class="mark">·</span>
-        <span>AI judges build the answer key, scored against your 40</span><span class="who">queued</span></div>
       <div class="status-row wait"><span class="mark">·</span>
         <span>Train MuRIL and XLM-R on a rented GPU</span><span class="who">queued</span></div>
       <div class="status-row wait"><span class="mark">·</span>
@@ -761,7 +768,7 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
     </div>
 
     <h3>1b · Five AI models each read all 1000 comments</h3>
-    <p>We use five <em>different</em> models — Gemini, DeepSeek, Mistral, Llama and Gemma.
+    <p>We use five <em>different</em> models — Llama&nbsp;4, Qwen&nbsp;3.7, GPT-5-nano, Mistral Nemo and DeepSeek&nbsp;V4.
     Five different models is far more useful than asking one model five times, because
     they were built differently and so they are wrong about different things.</p>
     <p>Each model must first name which of our 27 arguments the comment is making, and
@@ -781,7 +788,7 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
       <div class="spec-row">
         <div class="spec-lab">The panel</div>
         <div style="font-family:var(--mono); font-size:.84rem; line-height:1.9;">
-          Gemini &nbsp;<span class="chip against">Against</span> B5 · 0.92<br>
+          Llama 4 &nbsp;<span class="chip against">Against</span> B5 · 0.92<br>
           DeepSeek <span class="chip against">Against</span> B5 · 0.88<br>
           Mistral &nbsp;<span class="chip against">Against</span> A5 · 0.80<br>
           Llama &nbsp;&nbsp;<span class="chip against">Against</span> B5 · 0.75<br>
@@ -822,50 +829,77 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
 
 <!-- ============ STAGE 2 ============ -->
 <section class="stage" id="s2">
-  <div class="stage-num"><div class="n">2</div><div class="dep">25 min<br>by hand</div></div>
+  <div class="stage-num"><div class="n">2</div><div class="dep">5 min<br>by hand</div></div>
   <div class="stage-body">
     <div class="eyebrow">Stage two</div>
-    <h2>Build the answer key — 25 minutes of you, the rest by AI judges</h2>
+    <h2>Build the answer key — four strong AI judges, plus five minutes of you</h2>
     <p class="lead">We need Hindi and Bengali comments with known correct answers.
-    Without them we cannot tune anything or pick between our three runs. Here is how to
-    get them mostly automatically without fooling ourselves.</p>
+    Without them we cannot tune anything or pick between our three runs. Four strong
+    models do the labelling; one small thing still needs a human, and it is worth
+    understanding why.</p>
 
     <div class="call warn">
-      <div class="eyebrow">The trap in “just let an AI label it”</div>
+      <div class="eyebrow">The one thing an AI cannot do for itself</div>
       <p>If the same models that form our teacher panel also build the answer key, then
-      when we measure the panel against that key it scores near-perfect — by
-      construction. Every tuning constant would then be fitted to the panel’s own blind
-      spots, and we would ship something worse than if we had never tuned at all.</p>
-      <p>The fix is not to avoid AI labelling. It is to make the labellers
-      <strong>independent</strong> of everything they are used to judge, and then to
-      <strong>measure how good they actually are</strong>.</p>
+      measuring the panel against that key returns near-perfect — by construction. Every
+      tuning constant is then fitted to the panel’s own blind spots, and we ship
+      something worse than if we had never tuned at all.</p>
+      <p>Using <em>different, stronger</em> judges fixes the circularity, and we do
+      that. But it still cannot answer the question the human labels were for:
+      <strong>are the judges actually right?</strong> If they share a systematic error,
+      a judge-built key agrees with them and the error stays invisible — while every
+      number on screen looks healthy. That is the most likely way to lose this
+      competition without noticing.</p>
+      <p>So the judges label 300 comments, and you spot-check <strong>15</strong>. Five
+      minutes turns the whole set from <em>unvalidated</em> into
+      <em>spot-validated</em>, and hands the paper a real human-agreement figure.</p>
     </div>
 
-    <h3>Four safeguards</h3>
+    <h3>The judge panel</h3>
+    <div class="tbl-wrap">
+      <table>
+        <caption>Four strong models, no Google, none of them a teacher</caption>
+        <thead><tr><th>Judge</th><th class="num">$/M in</th><th>Why it is here</th></tr></thead>
+        <tbody>
+          <tr><td><code>claude-haiku-4.5</code></td><td class="num">1.00</td><td>Anthropic — a family entirely absent from the teacher panel</td></tr>
+          <tr><td><code>deepseek-reasoner</code></td><td class="num">—</td><td>Reasons before answering; slow but careful on codebook application</td></tr>
+          <tr><td><code>gpt-5-mini</code></td><td class="num">0.25</td><td>Reasoning tier, well above the teacher's gpt-5-nano</td></tr>
+          <tr><td><code>qwen3.7-plus</code></td><td class="num">0.32</td><td>Strongest cheap multilingual model; good on Indic scripts</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Three safeguards</h3>
     <ol class="steps">
-      <li><strong>A separate, stronger panel of judges.</strong> The judges share no model
-      with the teacher panel — the code refuses to run if they overlap. Judges are
-      reasoning-capable models (DeepSeek Reasoner, Claude Haiku, Gemini Flash); the
-      teachers are the cheaper tier.</li>
-      <li><strong>Judge in English.</strong> We already back-translated every test comment
-      in Stage 1. Every model is markedly more reliable in English than in Hindi or
-      Bengali, so judges see the original <em>and</em> the English side by side.</li>
+      <li><strong>Judges are disjoint from teachers.</strong> No model id appears in both
+      tiers, and the code refuses to run if one does. Two families recur at very
+      different capability points (OpenAI nano→mini, Qwen flash→plus); the working notes
+      say so plainly rather than claiming full independence.</li>
+      <li><strong>Judge in English.</strong> Every test comment was back-translated in
+      Stage 1, and judges see the original <em>and</em> the English side by side. Every
+      model is markedly more reliable in English than in Hindi or Bengali.</li>
       <li><strong>A second judge tries to prove the first one wrong.</strong> Only labels
-      that survive the challenge are kept. Challenged ones go to a short human queue
-      instead of being guessed.</li>
-      <li><strong>You label 40 comments by hand as an anchor.</strong> We never tune on
-      those 40 — we use them to score the judges. That turns “we hope the AI labels are
-      good” into a number.</li>
+      that survive the challenge are kept; challenged ones go to a queue rather than
+      being guessed.</li>
     </ol>
 
-    <div class="term"><span class="c"># 1. hand-label 40 comments — about 25 minutes</span>
-<span class="p">$</span> bash run_all.sh seed
-<span class="c">#    fill the `gold` column, then:</span>
-<span class="p">$</span> python3.12 src/annotate_dev.py finalise \
-      --input artifacts/seed_to_annotate.csv --out artifacts/seed_gold.csv
+    <div class="term"><span class="c"># the judges label 300 comments through the English pivot</span>
+<span class="p">$</span> bash run_all.sh silver
 
-<span class="c"># 2. AI judges label 300 more and get scored on your 40</span>
-<span class="p">$</span> bash run_all.sh silver</div>
+<span class="c"># then: open artifacts/spot_check.csv, fill `your_label` for 15 rows (~5 min)</span></div>
+
+    <h3>What we can measure without human labels</h3>
+    <p>Three numbers that bound reliability. None of them proves the judges are right —
+    only a human can do that — but all three are real and all three go in the paper.</p>
+    <ul class="tight">
+      <li><strong>Agreement among the four judges</strong> (Fleiss’ κ). Independently
+      built strong models converging on a task is evidence it is well defined.</li>
+      <li><strong>Strong judges versus the cheap teacher panel.</strong> The useful one:
+      it says how far the labels being distilled into our encoder sit from a 4× more
+      expensive panel’s view.</li>
+      <li><strong>Adversarial overturn rate</strong> — how often the challenger rejected
+      a proposal that four strong models had already agreed on.</li>
+    </ul>
 
     <div class="spec">
       <div class="spec-hd">Example · one comment through the judging pipeline</div>
@@ -880,7 +914,7 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
         <div style="font-family:var(--mono); font-size:.84rem; line-height:1.9;">
           DeepSeek Reasoner &nbsp;<span class="chip against">Against</span> A3 · 0.91<br>
           Claude Haiku &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip against">Against</span> A3 · 0.88<br>
-          Gemini Flash &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="chip against">Against</span> A2 · 0.85
+          Qwen3.7-plus &nbsp;&nbsp;&nbsp;<span class="chip against">Against</span> A2 · 0.85
         </div>
       </div>
       <div class="spec-arrow" aria-hidden="true">↓ challenger tries to refute</div>
@@ -893,19 +927,18 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
     </div>
 
     <div class="call">
-      <div class="eyebrow">Read the verdict before you continue</div>
-      <p>At the end the tool prints how well the judges matched <em>your</em> 40:</p>
+      <div class="eyebrow">Reading your spot check</div>
       <ul class="tight">
-        <li><strong>0.85 or above — SAFE.</strong> Use the AI-built key for tuning and blending. Carry on.</li>
-        <li><strong>0.70 to 0.85 — USABLE.</strong> Carry on, but also label the queue of challenged comments before trusting the blend weights.</li>
-        <li><strong>Below 0.70 — UNSAFE.</strong> Do not tune on it. Spend the two hours and label 150 yourself: <code>bash run_all.sh annotate</code>.</li>
+        <li><strong>13 or more of 15 agree</strong> — the silver set is behaving. Proceed to tuning and blending with confidence.</li>
+        <li><strong>11 or 12</strong> — usable, but label the challenged queue in <code>artifacts/human_queue.csv</code> before trusting the blend weights.</li>
+        <li><strong>Fewer than 11</strong> — something is systematically off. Do not calibrate on it; the judge prompt needs re-examining first.</li>
       </ul>
       <p>Whatever the number is, it goes in the paper. “We used LLM judges and measured
       them against human labels at 0.87” is a contribution; “we used LLM judges” is a
       reviewer’s objection.</p>
     </div>
 
-    <h3>The four rules for your 40</h3>
+    <h3>The four rules, for the 15 you check</h3>
     <ol class="steps">
       <li><strong>Angry is not Against.</strong> “Shame on the government for this pollution” accepts the claim → <span class="chip favour">Favour</span>.</li>
       <li><strong>Praising the video is not agreeing.</strong> “Very informative, thank you” → <span class="chip none">None</span>.</li>
@@ -1255,8 +1288,8 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
       <div class="todo-grp">Stage 2 — blocked on you</div>
       <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Confirm the real deadline with the organizers</strong>
         <span class="m">email aisome.fire2026@gmail.com · also ask whether CSV or XLSX is required</span></span></div>
-      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Hand-label 40 comments (~25 minutes)</strong>
-        <span class="m">bash run_all.sh seed → fill the gold column → annotate_dev.py finalise</span></span></div>
+      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Spot-check 15 comments (~5 minutes)</strong>
+        <span class="m">open artifacts/spot_check.csv and fill `your_label` — the one check AI cannot do on itself</span></span></div>
       <div class="todo-item wait"><span class="mark">·</span><span class="t">AI judges build the answer key and get scored on your 40
         <span class="m">bash run_all.sh silver · read the verdict before continuing</span></span></div>
 
@@ -1293,7 +1326,7 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
       <div class="item"><div class="box" aria-hidden="true"></div><span><code>python3.12 src/llm.py</code> run — every teacher and judge model answers, and the two tiers are disjoint</span></div>
       <div class="item"><div class="box" aria-hidden="true"></div><span>Stage 0 finished — generated comments and translations are saved</span></div>
       <div class="item"><div class="box" aria-hidden="true"></div><span>AI panel has run on both languages, and the agreement figures look sane</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>40 comments labelled by hand</strong>, and the judges scored <strong>0.70 or better</strong> against them</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>15 comments spot-checked by hand</strong>, and you agreed with <strong>13 or more</strong></span></div>
       <div class="item"><div class="box" aria-hidden="true"></div><span>Our trained models beat the AI panel on the answer key</span></div>
       <div class="item"><div class="box" aria-hidden="true"></div><span><strong>No submitted column depends on an API call</strong> — all three are local checkpoints</span></div>
       <div class="item"><div class="box" aria-hidden="true"></div><span>Tuning applied per language, and it improved rather than hurt the score</span></div>
@@ -1318,7 +1351,7 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
       <li>The test comments are <strong>translated American comments</strong>, so translate them back to English and tell your models where they came from.</li>
       <li>The score is macro-F1, so <strong>the rare Against label is worth as much as the common ones</strong> — protect it in every single step.</li>
       <li><strong>Submit models you trained, never a live AI call.</strong> The AI is a teacher, not a contestant; that is the pattern FIRE publishes and the one their reproducibility clause expects.</li>
-      <li><strong>Label 40 comments yourself</strong> so you can measure the AI judges. Unmeasured AI labels are worse than no labels, because they make you confident while being wrong.</li>
+      <li><strong>Spot-check 15 of the AI's labels yourself.</strong> Unmeasured AI labels are worse than no labels, because they make you confident while being wrong — and no AI can audit its own blind spot.</li>
       <li><strong>Never just take the biggest number.</strong> Tuning the decision rule was worth more than most modelling changes — then open the ZIP and look at it before uploading.</li>
     </ol>
   </div>

@@ -36,7 +36,7 @@ BATCH="${BATCH:-16}"
 AUX_WEIGHT="${AUX_WEIGHT:-0.3}"                   # argument-node auxiliary head
 SOFT_ALPHA="${SOFT_ALPHA:-0.4}"                   # soft-label KL term
 PER_CELL="${PER_CELL:-6}"                         # synthetic comments per taxonomy cell
-GENERATORS="${GENERATORS:-gemini deepseek}"       # round-robin across generators
+GENERATORS="${GENERATORS:-or-qwen or-deepseek or-mistral}"  # round-robin, no Google
 MEMBERS="${MEMBERS:-}"                            # empty = whole teacher tier (llm.py)
 SELFTRAIN_ROUNDS="${SELFTRAIN_ROUNDS:-2}"
 TRANSLIT="${TRANSLIT:-none}"                      # none | auto | local | llm

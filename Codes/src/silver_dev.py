@@ -289,6 +289,10 @@ def main():
     ap.add_argument("--out", default=str(ARTIFACTS_DIR / "dev_gold.csv"))
     ap.add_argument("--queue-out", default=str(ARTIFACTS_DIR / "human_queue.csv"),
                     help="unresolved comments for you to label by hand")
+    ap.add_argument("--spot-check", type=int, default=15,
+                    help="if no human seed exists, emit this many comments for a "
+                         "~5 minute spot check (0 to skip)")
+    ap.add_argument("--spot-out", default=str(ARTIFACTS_DIR / "spot_check.csv"))
     args = ap.parse_args()
 
     set_seed(SEED)
@@ -429,6 +433,46 @@ def main():
               "english_pivot": bool(en_map),
               "silver_distribution": accepted["silver"].value_counts().to_dict()}
 
+    # Reliability evidence obtainable WITHOUT human labels. None of this proves
+    # correctness — only a human can do that — but all three are real, reportable
+    # numbers, and together they bound how much trust the silver set deserves.
+    from llm_committee import fleiss_kappa
+    strong_votes = [[v[cid]["stance"] for v in votes.values() if cid in v]
+                    for cid in adj["id"].astype(str)]
+    kappa = fleiss_kappa(strong_votes)
+    report["judge_panel_fleiss_kappa"] = round(float(kappa), 4)
+    print(f"\n{'='*70}\nRELIABILITY EVIDENCE (no human labels involved)")
+    print(f"  1. agreement among the {len(judges)} strong judges: Fleiss kappa "
+          f"{kappa:.3f}")
+    print(f"     {'substantial/near-perfect — the task is well defined and strong'
+                 ' models converge on it' if kappa >= 0.6 else
+                 'only moderate — treat the silver labels with real caution'}")
+
+    # 2. strong panel vs the cheap teacher panel: how much does 4x the spend buy?
+    cheap = pool.set_index("id")["committee_label"].to_dict()
+    both = [(cheap.get(r["id"]), r["silver"]) for _, r in accepted.iterrows()
+            if cheap.get(r["id"]) in LABELS and r["silver"] in LABELS]
+    if both:
+        agree = sum(a == b for a, b in both) / len(both)
+        report["strong_vs_cheap_agreement"] = round(agree, 4)
+        report["cheap_panel_macro_f1_vs_silver"] = round(
+            macro_f1([b for _, b in both], [a for a, _ in both]), 4)
+        print(f"  2. strong judges vs the cheap teacher panel: {agree:.1%} agreement "
+              f"on {len(both)} comments")
+        print(f"     cheap panel scored against silver: macro-F1 "
+              f"{report['cheap_panel_macro_f1_vs_silver']:.3f}")
+        print(f"     {'the cheap panel tracks the strong one closely, so the labels the'
+                     ' encoder distils are probably sound' if agree >= 0.85 else
+                     'a large gap — the teacher labels feeding the encoder are noisier'
+                     ' than the silver set'}")
+
+    # 3. how often a strong challenger overturned a strong proposal
+    if "survived_refutation" in adj.columns:
+        overturned = int((~adj["survived_refutation"]).sum())
+        report["refutation_overturn_rate"] = round(overturned / max(len(adj), 1), 4)
+        print(f"  3. adversarial challenger overturned {overturned}/{len(adj)} "
+              f"proposals ({report['refutation_overturn_rate']:.1%})")
+
     verdict = "UNMEASURED"
     if seed_gold is not None and len(seed_gold):
         m = accepted.merge(seed_gold[["id", "gold"]], on="id", how="inner")
@@ -487,8 +531,33 @@ def main():
         print("  These are the genuinely hard ones. Labelling even 30 of them by")
         print("  hand is the highest-value time you can spend from here.")
 
+    # A cheap way to convert "unvalidated" into "spot-validated": a stratified
+    # handful, weighted toward what the judges were least sure about. Fifteen
+    # comments is about five minutes and is enough to catch a systematic error,
+    # which is the failure mode that actually costs macro-F1.
+    if seed_gold is None or not len(seed_gold):
+        n_spot = min(args.spot_check, len(accepted))
+        if n_spot:
+            spot = pd.concat([
+                accepted.nsmallest(max(n_spot // 2, 1), "judge_agree"),
+                accepted.sample(n_spot - max(n_spot // 2, 1), random_state=SEED),
+            ]).drop_duplicates(subset=["id"])
+            spot = spot[["id", "lang", "text", "silver", "judge_agree", "reason"]]
+            spot = spot.rename(columns={"silver": "llm_label"})
+            spot["your_label"] = ""
+            spot["agree"] = ""
+            spot.to_csv(args.spot_out, index=False)
+            print(f"\nwrote a {len(spot)}-comment SPOT CHECK -> {args.spot_out}")
+            print("  ~5 minutes. Fill `your_label`; if you agree with 13+ of 15 the")
+            print("  silver set is behaving. This is the cheapest way to stop flying")
+            print("  blind, and it gives the working notes a human-agreement number.")
+
     write_json(Path(args.out).with_suffix(".silver_report.json"), report)
     print(f"\nverdict: {verdict}")
+    if verdict == "UNMEASURED":
+        print("  No human labels were involved, so judge ACCURACY is unmeasured — the")
+        print("  three numbers above bound it but cannot establish it. Calibration")
+        print("  fitted to these labels inherits whatever the judges get wrong.")
 
 
 if __name__ == "__main__":

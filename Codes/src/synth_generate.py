@@ -188,8 +188,9 @@ def main():
                     help="default: native only for translationese, both otherwise")
     ap.add_argument("--registers", nargs="+", default=list(REGISTERS),
                     choices=list(REGISTERS))
-    ap.add_argument("--generators", nargs="+", default=["gemini"],
-                    help="providers to round-robin across cells, e.g. gemini deepseek")
+    ap.add_argument("--generators", nargs="+",
+                    default=["or-qwen", "or-deepseek", "or-mistral"],
+                    help="providers to round-robin across cells")
     ap.add_argument("--nodes", nargs="+", default=None,
                     help="restrict to specific node ids (default: all)")
     ap.add_argument("--stances", nargs="+", default=None, choices=LABELS,

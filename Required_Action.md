@@ -29,32 +29,101 @@ Ask in the same email:
 
 ---
 
-### 2. Hand-label 40 comments (~25 minutes) — the anchor set
+### 2. Spot-check 15 comments (~5 minutes)
 
-This is the one modelling-critical step a machine cannot do for you, and it gates
-calibration, fusion weights and run selection.
+You asked for the 40-comment anchor to be done by LLM instead, and I have done that —
+a panel of four strong models (Claude Haiku 4.5, DeepSeek Reasoner, GPT-5-mini,
+Qwen3.7-plus) is labelling 300 comments through the English pivot, with a second model
+adversarially challenging every label. That is a much bigger and probably better dev
+set than 40 hand labels would have been.
+
+**But there is one thing it cannot do, and I want to be straight about it.**
+
+The 40 hand labels existed to *measure whether LLM labels can be trusted*. An LLM
+cannot perform that measurement on itself — if the judges are wrong in some systematic
+way, a judge-built answer key agrees with them and the error is invisible. We then fit
+calibration constants and fusion weights to that error and ship it with confidence.
+This is the single most likely way to lose the competition while every number on screen
+looks healthy.
+
+So the code produces `artifacts/spot_check.csv` — **15 comments, about five minutes**,
+weighted toward the ones the judges were least certain about:
 
 ```bash
 cd /home/Debz/Hackathon/AISOME/Codes
-bash run_all.sh seed
-# open artifacts/seed_to_annotate.csv
-# read  artifacts/seed_to_annotate_CODEBOOK.txt
-# fill the `gold` column with:  Favour | Against | None     ('?' if truly unsure)
-python3.12 src/annotate_dev.py finalise \
-    --input artifacts/seed_to_annotate.csv --out artifacts/seed_gold.csv
+# open artifacts/spot_check.csv, fill `your_label` for 15 rows
 ```
 
-The four rules that resolve most hard cases:
+If you agree with **13 or more of 15**, the silver set is behaving and we proceed with
+confidence. If you agree with fewer than 11, something is systematically off and I
+should re-examine the judge prompt before anything gets calibrated.
+
+Five minutes converts the whole dev set from *unvalidated* to *spot-validated*, and it
+gives the CEUR paper a real human-agreement figure. "We used LLM judges and measured
+them against human labels at 0.87" is a contribution; "we used LLM judges" is a
+reviewer's objection.
+
+The four rules, if you do fill it in:
 
 1. **Angry is not Against.** *"Shame on the government for this pollution"* accepts
    the claim → **Favour**.
 2. **Praising the video is not agreeing.** *"Very informative, thank you"* → **None**.
 3. **Hypocrisy cuts both ways.** *"They fly private jets, so it's all drama"* →
    **Against**. *"They fly private jets, they should act first"* → **Favour**.
-4. **Unsure? Type `?`.** It is dropped and counted, which is more useful than a guess.
+4. **Unsure? Leave it blank.** A blank is more useful than a guess.
 
-Without this, the AI judges that build the rest of the dev set have **no measured
-reliability**, and we would be tuning on labels we cannot vouch for.
+### What I *can* measure without you, and will report
+
+Three numbers that bound reliability without any human labels. All three go in the
+working notes:
+
+1. **Agreement among the four strong judges** (Fleiss' κ). High agreement between
+   independently-built strong models means the task is well defined and they are
+   converging — evidence, not proof.
+2. **Strong judges vs the cheap teacher panel.** This is the useful one: it tells us
+   how much the labels being distilled into the encoder differ from a 4× more
+   expensive panel's view.
+3. **Adversarial overturn rate** — how often a strong challenger rejected a strong
+   proposal.
+
+---
+
+## 🔵 GOOGLE REMOVED — one leftover to decide
+
+Per your instruction, **no GCP service and no Gemini is called anywhere** in the
+pipeline now. Removed: the Gemini client, the `gemini` provider, and Google models via
+OpenRouter. Every provider is DeepSeek's own API or a paid OpenRouter model.
+
+The judge panel is now: `claude-haiku-4.5`, `deepseek-reasoner`, `gpt-5-mini`,
+`qwen3.7-plus`. Translation and back-translation now run on `deepseek-chat`, which
+turned out to be **much better than Gemini for this job** — it batches cleanly, so
+1,000 back-translations took 75 seconds with zero retries, against Gemini's
+truncation-and-retry problems.
+
+**Two leftovers:**
+
+1. **`train_en.to-hi.csv` / `train_en.to-bn.csv` were translated by Gemini** before you
+   gave that instruction. The data is good, but if you want zero Google involvement in
+   anything that reaches the paper, re-translate on DeepSeek — about 30 minutes and
+   roughly $0.30:
+   ```bash
+   cd /home/Debz/Hackathon/AISOME/Codes
+   mv artifacts/train_en.to-hi.csv artifacts/train_en.to-hi.gemini.bak
+   mv artifacts/train_en.to-bn.csv artifacts/train_en.to-bn.gemini.bak
+   python3.12 src/translate.py --input artifacts/train_en.csv --text-col text \
+       --to hi bn --provider deepseek --workers 4
+   ```
+   **Tell me and I will run it.** I did not do it unasked because it discards work that
+   is genuinely fine.
+
+2. **`google/muril-base-cased` is still the default backbone.** This is *open weights
+   downloaded from the HuggingFace Hub* — no Google API, no GCP service, nothing leaves
+   this machine. It is also the model that has topped FIRE's Indic classification
+   leaderboards, so dropping it would cost real accuracy. If you want zero
+   Google-authored artefacts even so, switch with one flag:
+   ```bash
+   BACKBONE=ai4bharat/IndicBERTv2-MLM-only bash run_all.sh stage2
+   ```
 
 ---
 

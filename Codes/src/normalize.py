@@ -163,7 +163,7 @@ def _translit_local(text: str, lang: str) -> str | None:
         return None
 
 
-def _translit_llm(texts: list[str], lang: str, provider: str = "gemini",
+def _translit_llm(texts: list[str], lang: str, provider: str = "deepseek",
                   workers: int = 6) -> list[str]:
     """LLM transliteration — more robust than rule-based on real code-mix, and
     cached, so it is paid for once."""
@@ -183,7 +183,7 @@ def _translit_llm(texts: list[str], lang: str, provider: str = "gemini",
 
 
 def transliterate_frame(df, text_col: str, lang_col: str = "lang",
-                        method: str = "auto", provider: str = "gemini",
+                        method: str = "auto", provider: str = "deepseek",
                         workers: int = 6, out_col: str = "text_native"):
     """Add `out_col`: romanised Indic rows converted to native script, others copied."""
     texts = df[text_col].astype(str).tolist()
@@ -243,7 +243,7 @@ def detect_columns(df, id_col: str = "auto", text_col: str = "auto"):
 
 
 def normalize_test_file(path, lang_hint: str, translit: str = "none",
-                        provider: str = "gemini", out: Path | None = None):
+                        provider: str = "deepseek", out: Path | None = None):
     """Read a raw test file -> canonical frame [id, text_raw, text, lang, script].
 
     `id` is preserved EXACTLY as it appears in the source file (as a string), because
@@ -297,7 +297,7 @@ def main():
     ap.add_argument("--translit", default="none",
                     choices=["none", "auto", "local", "llm"],
                     help="romanised Indic -> native script")
-    ap.add_argument("--provider", default="gemini")
+    ap.add_argument("--provider", default="deepseek")
     ap.add_argument("--outdir", default=str(ARTIFACTS_DIR))
     args = ap.parse_args()
 

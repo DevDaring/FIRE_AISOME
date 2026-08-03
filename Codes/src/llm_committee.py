@@ -264,7 +264,7 @@ def main():
     ap.add_argument("--lang", nargs="+", default=None,
                     help="language per --test file (default: parsed from the filename)")
     ap.add_argument("--members", nargs="+", default=None,
-                    help="subset of llm.MEMBERS ids, e.g. gemini deepseek mistral")
+                    help="subset of llm.TEACHER_MEMBERS ids, e.g. or-qwen or-llama")
     ap.add_argument("--text-col", default="text",
                     help="'text_native' to feed transliterated text instead")
     ap.add_argument("--batch", type=int, default=BATCH)

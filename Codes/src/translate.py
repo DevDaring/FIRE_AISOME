@@ -64,7 +64,7 @@ def _batch_prompt(items: list[tuple[int, str]], src: str, tgt: str) -> str:
 
 
 class LLMTranslator:
-    def __init__(self, provider: str = "gemini", model: str | None = None,
+    def __init__(self, provider: str = "deepseek", model: str | None = None,
                  batch: int = BATCH, workers: int = 6):
         from llm import get_client
         self.cli = get_client(provider, model)
@@ -148,14 +148,14 @@ class LocalIndicTrans:
         return out
 
 
-def get_translator(provider: str = "gemini", model: str | None = None,
+def get_translator(provider: str = "deepseek", model: str | None = None,
                    batch: int = BATCH, workers: int = 6):
     if provider == "local":
         return LocalIndicTrans()
     if provider == "auto":
         from llm import available_providers
         avail = available_providers()
-        for pref in ("gemini", "deepseek", "openrouter", "mistral"):
+        for pref in ("deepseek", "or-deepseek", "or-qwen", "or-llama"):
             if pref in avail:
                 provider = pref
                 break
@@ -174,9 +174,10 @@ def main():
     ap.add_argument("--to", nargs="+", required=True, choices=["en", "hi", "bn"])
     ap.add_argument("--from-lang", default="en", choices=["en", "hi", "bn", "auto"],
                     help="'auto' = per-row script/word detection")
-    ap.add_argument("--provider", default="gemini",
-                    choices=["auto", "gemini", "deepseek", "mistral", "openrouter",
-                             "llama", "gemma", "nanogpt", "local"])
+    ap.add_argument("--provider", default="deepseek",
+                    choices=["auto", "deepseek", "deepseek-r", "or-deepseek",
+                             "or-qwen", "or-llama", "or-mistral", "or-gpt",
+                             "or-claude", "mistral", "nanogpt", "local"])
     ap.add_argument("--model", default=None)
     ap.add_argument("--batch", type=int, default=BATCH)
     ap.add_argument("--workers", type=int, default=6)
