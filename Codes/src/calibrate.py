@@ -46,7 +46,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from common import LABELS, macro_f1, read_csv, score_report, write_json
+from common import (LABELS, lang_from_path, load_dev, macro_f1, read_csv,
+                    score_report, write_json)
 
 PCOLS = [f"p_{l.lower()}" for l in LABELS]
 EPS = 1e-12
@@ -186,9 +187,9 @@ def decide(P: np.ndarray) -> list[str]:
 # ---------------------------------------------------------------------------
 def cmd_fit(args):
     ids, P = load_probs(args.probs)
-    dev = read_csv(args.dev)
-    dev["id"] = dev["id"].astype(str)
-    dev = dev[dev["gold"].isin(LABELS)]
+    lang = args.lang or lang_from_path(args.probs)
+    dev = load_dev(args.dev, lang=lang)
+    print(f"dev restricted to lang={lang!r}: {len(dev)} rows")
     idx = {i: k for k, i in enumerate(ids)}
     mask = [idx[i] for i in dev["id"] if i in idx]
     dev = dev[dev["id"].isin(idx)].reset_index(drop=True)
@@ -293,6 +294,10 @@ def main():
     f.add_argument("--probs", required=True, help="probability frame for one language")
     f.add_argument("--dev", required=True, help="dev_gold.csv (id,gold)")
     f.add_argument("--out", required=True)
+    f.add_argument("--lang", default=None,
+                   help="hi|bn — which language's dev rows to use (default: inferred "
+                        "from the --probs filename). Required because both test files "
+                        "are numbered 1..500, so ids collide across languages.")
     f.add_argument("--train-prior", nargs="+", default=None,
                    help="training class prior in LABELS order (default: uniform, "
                         "which is right after balanced synthetic augmentation)")

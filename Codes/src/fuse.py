@@ -32,7 +32,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from common import LABELS, macro_f1, read_csv, score_report, write_json
+from common import (LABELS, lang_from_path, load_dev, macro_f1, read_csv,
+                    score_report, write_json)
 
 PCOLS = [f"p_{l.lower()}" for l in LABELS]
 EPS = 1e-12
@@ -117,6 +118,8 @@ def main():
                     help="grid-search weights on --dev for macro-F1")
     ap.add_argument("--dev", default=None, help="dev_gold.csv (id,gold)")
     ap.add_argument("--mean", default="geometric", choices=["geometric", "arithmetic"])
+    ap.add_argument("--lang", default=None,
+                    help="hi|bn — dev rows to use (default: inferred from --out)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--report", default=None, help="write a JSON report here")
     args = ap.parse_args()
@@ -146,10 +149,9 @@ def main():
 
     dev = None
     if args.dev and Path(args.dev).exists():
-        dev = read_csv(args.dev)
-        dev["id"] = dev["id"].astype(str)
-        dev = dev[dev["gold"].isin(LABELS)]
-        print(f"gold dev rows available: {len(dev)}")
+        lang = args.lang or lang_from_path(args.out)
+        dev = load_dev(args.dev, lang=lang)
+        print(f"gold dev rows for lang={lang!r}: {len(dev)}")
 
         # single-channel reference scores — the paper's ablation column
         pos = {i: k for k, i in enumerate(ids)}

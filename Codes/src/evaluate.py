@@ -22,8 +22,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from common import (LABELS, normalize_label, read_csv, read_table, score_report,
-                    write_json)
+from common import (LABELS, lang_from_path, load_dev, normalize_label, read_csv,
+                    read_table, score_report, write_json)
 
 PCOLS = [f"p_{l.lower()}" for l in LABELS]
 
@@ -51,6 +51,9 @@ def main():
     ap = argparse.ArgumentParser(description="Score frames against the gold dev set")
     ap.add_argument("--dev", required=True, help="artifacts/dev_gold.csv")
     ap.add_argument("--pred", nargs="+", required=True, metavar="NAME=PATH")
+    ap.add_argument("--lang", default=None,
+                    help="hi|bn — restrict dev to one language. REQUIRED when the "
+                         "--pred frames are single-language, because ids collide.")
     ap.add_argument("--by-lang", action="store_true",
                     help="also break every score down by language")
     ap.add_argument("--errors", default=None,
@@ -58,10 +61,9 @@ def main():
     ap.add_argument("--report", default=None, help="write a JSON summary here")
     args = ap.parse_args()
 
-    dev = read_csv(args.dev)
-    dev["id"] = dev["id"].astype(str)
-    dev = dev[dev["gold"].isin(LABELS)].reset_index(drop=True)
-    print(f"gold dev: {len(dev)} rows {dev['gold'].value_counts().to_dict()}")
+    dev = load_dev(args.dev, lang=args.lang)
+    print(f"gold dev{f' (lang={args.lang})' if args.lang else ''}: {len(dev)} rows "
+          f"{dev['gold'].value_counts().to_dict()}")
     if "lang" in dev.columns:
         print(f"  by language: {dev['lang'].value_counts().to_dict()}")
 

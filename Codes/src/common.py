@@ -231,6 +231,41 @@ def write_json(path, obj):
                           encoding="utf-8")
 
 
+def lang_from_path(path) -> str:
+    """'hi' or 'bn' inferred from a filename. Defaults to 'hi'."""
+    return "bn" if "bn" in Path(path).stem.lower() else "hi"
+
+
+def load_dev(dev_path, lang: str | None = None):
+    """Load the dev set, optionally restricted to ONE language.
+
+    The organizers number both test files 1..500, so a dev set spanning both
+    languages contains the same `id` twice with different gold labels — 45 such
+    collisions in our 264-row set. Every downstream join (calibration, fusion
+    weights, evaluation) keys on `id`, so without this filter roughly half the
+    matches land on the other language's comment: calibration constants get
+    fitted against Bengali gold for Hindi predictions and nothing errors.
+
+    Always pass `lang` when comparing against a single-language probability frame.
+    """
+    df = read_csv(dev_path)
+    df["id"] = df["id"].astype(str).str.strip()
+    df = df[df["gold"].isin(LABELS)]
+    if lang is not None:
+        if "lang" not in df.columns:
+            raise SystemExit(f"{dev_path}: no `lang` column, so it cannot be split "
+                             f"per language — ids collide across the two test files")
+        df = df[df["lang"] == lang]
+        if df["id"].duplicated().any():
+            raise SystemExit(f"{dev_path}: duplicate ids within lang={lang}")
+    elif df["id"].duplicated().any():
+        n = int(df["id"].duplicated().sum())
+        print(f"  WARNING: {dev_path} has {n} ids appearing in both languages and no "
+              f"language filter was applied — joins on `id` alone will mismatch. "
+              f"Pass lang=...")
+    return df.reset_index(drop=True)
+
+
 def find_test_files() -> dict:
     """Locate the Hindi and Bengali test files under Dataset/Testing_Data/.
 

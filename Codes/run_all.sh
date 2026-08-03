@@ -259,7 +259,7 @@ stage3() {
             for M in setu xlmr; do
                 [[ -f "$A/probs_${M}_$L.csv" ]] || continue
                 $PY src/calibrate.py fit --probs "$A/probs_${M}_$L.csv" \
-                    --dev "$DEV_GOLD" --out "$A/calib_${M}_$L.json" \
+                    --dev "$DEV_GOLD" --lang "$L" --out "$A/calib_${M}_$L.json" \
                     && $PY src/calibrate.py apply --probs "$A/probs_${M}_$L.csv" \
                         --calib "$A/calib_${M}_$L.json" \
                         --out "$A/probs_${M}_$L.cal.csv" \
@@ -284,7 +284,8 @@ stage3() {
             echo "  only ${#ch[@]} channel(s) — skipping fusion"
         elif [[ -n "${DEV_GOLD:-}" && -f "${DEV_GOLD:-}" ]]; then
             $PY src/fuse.py --channel "${ch[@]}" --search --dev "$DEV_GOLD" \
-                --out "$A/probs_fused_$L.csv" --report "$A/fuse_report_$L.json"
+                --lang "$L" --out "$A/probs_fused_$L.csv" \
+                --report "$A/fuse_report_$L.json"
         else
             echo "  no dev_gold.csv — using equal weights (run 'annotate' to do better)"
             $PY src/fuse.py --channel "${ch[@]}" --out "$A/probs_fused_$L.csv" \
@@ -305,7 +306,7 @@ stage3() {
             [[ -f "$A/probs_nli_$L.csv" ]]      && pr+=("nli=$A/probs_nli_$L.csv")
             [[ -f "$A/probs_hardvote_$L.csv" ]] && pr+=("hardvote=$A/probs_hardvote_$L.csv")
             [[ -f "$A/probs_fused_$L.csv" ]]    && pr+=("fused=$A/probs_fused_$L.csv")
-            $PY src/evaluate.py --dev "$DEV_GOLD" --pred "${pr[@]}" --by-lang \
+            $PY src/evaluate.py --dev "$DEV_GOLD" --lang "$L" --pred "${pr[@]}" \
                 --errors "$A/errors_$L.csv" --report "$A/eval_report_$L.json"
         fi
     done

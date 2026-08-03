@@ -449,22 +449,35 @@ def main():
                  'only moderate — treat the silver labels with real caution'}")
 
     # 2. strong panel vs the cheap teacher panel: how much does 4x the spend buy?
-    cheap = pool.set_index("id")["committee_label"].to_dict()
-    both = [(cheap.get(r["id"]), r["silver"]) for _, r in accepted.iterrows()
-            if cheap.get(r["id"]) in LABELS and r["silver"] in LABELS]
-    if both:
-        agree = sum(a == b for a, b in both) / len(both)
-        report["strong_vs_cheap_agreement"] = round(agree, 4)
-        report["cheap_panel_macro_f1_vs_silver"] = round(
-            macro_f1([b for _, b in both], [a for a, _ in both]), 4)
-        print(f"  2. strong judges vs the cheap teacher panel: {agree:.1%} agreement "
-              f"on {len(both)} comments")
-        print(f"     cheap panel scored against silver: macro-F1 "
-              f"{report['cheap_panel_macro_f1_vs_silver']:.3f}")
-        print(f"     {'the cheap panel tracks the strong one closely, so the labels the'
-                     ' encoder distils are probably sound' if agree >= 0.85 else
-                     'a large gap — the teacher labels feeding the encoder are noisier'
-                     ' than the silver set'}")
+    # Key on (id, lang): both organizer files are numbered 1..500, so a dict keyed on
+    # id alone silently compares Hindi gold against Bengali predictions half the time.
+    # And report per stratum — the disagreement stratum was SELECTED for teacher
+    # disagreement, so agreement there is low by construction and says nothing about
+    # the teacher's overall quality. The random stratum is the unbiased estimate.
+    cheap = {(str(r["id"]), r["lang"]): r["committee_label"]
+             for _, r in pool.iterrows()}
+    acc = accepted.copy()
+    acc["cheap"] = [cheap.get((str(r["id"]), r["lang"])) for _, r in acc.iterrows()]
+    acc = acc[acc["cheap"].isin(LABELS) & acc["silver"].isin(LABELS)]
+    if len(acc):
+        report["strong_vs_cheap"] = {}
+        for strat in ("random", "disagreement", "seed"):
+            sub = acc[acc["stratum"] == strat]
+            if len(sub) < 10:
+                continue
+            ag = float((sub["silver"] == sub["cheap"]).mean())
+            f1 = macro_f1(sub["silver"].tolist(), sub["cheap"].tolist())
+            report["strong_vs_cheap"][strat] = {
+                "n": len(sub), "agreement": round(ag, 4), "teacher_macro_f1": round(f1, 4)}
+            tag = "  <- UNBIASED ESTIMATE" if strat == "random" else                   "  (selected for teacher disagreement; low by construction)"
+            print(f"  2. strong vs cheap, {strat:13} n={len(sub):3} "
+                  f"agreement {ag:.1%}  teacher macro-F1 {f1:.3f}{tag}")
+        rnd = report["strong_vs_cheap"].get("random")
+        if rnd:
+            print(f"     {'the teacher panel tracks the strong one closely, so the labels'
+                         ' the encoder distils are sound' if rnd['agreement'] >= 0.80 else
+                         'a real gap even on the unbiased sample — the teacher labels'
+                         ' feeding the encoder are noisy'}")
 
     # 3. how often a strong challenger overturned a strong proposal
     if "survived_refutation" in adj.columns:
