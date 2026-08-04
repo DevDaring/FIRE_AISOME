@@ -20,6 +20,15 @@
           "missing_ids": 0
         },
         "model2_label": {
+          "source": "artifacts/probs_indic_hi.cal.csv",
+          "distribution": {
+            "Against": 216,
+            "Favour": 203,
+            "None": 81
+          },
+          "missing_ids": 0
+        },
+        "model3_label": {
           "source": "artifacts/probs_stage2_hi.csv",
           "distribution": {
             "Against": 229,
@@ -27,18 +36,9 @@
             "None": 85
           },
           "missing_ids": 0
-        },
-        "model3_label": {
-          "source": "artifacts/probs_distil_hi.cal.csv",
-          "distribution": {
-            "Against": 221,
-            "Favour": 157,
-            "None": 122
-          },
-          "missing_ids": 0
         }
       },
-      "all_models_agree_frac": 0.834
+      "all_models_agree_frac": 0.862
     },
     "bengali": {
       "test_file": "Dataset/Testing_Data/Bangla_500_test data.xlsx",
@@ -54,25 +54,25 @@
           "missing_ids": 0
         },
         "model2_label": {
-          "source": "artifacts/probs_equal5_bn.csv",
+          "source": "artifacts/probs_equal7_bn.csv",
           "distribution": {
-            "Against": 200,
-            "Favour": 192,
-            "None": 108
+            "Against": 217,
+            "Favour": 182,
+            "None": 101
           },
           "missing_ids": 0
         },
         "model3_label": {
-          "source": "artifacts/probs_stage2_bn.csv",
+          "source": "artifacts/probs_indic_bn.cal.csv",
           "distribution": {
-            "Against": 209,
-            "Favour": 182,
-            "None": 109
+            "Against": 244,
+            "Favour": 144,
+            "None": 112
           },
           "missing_ids": 0
         }
       },
-      "all_models_agree_frac": 0.886
+      "all_models_agree_frac": 0.83
     }
   }
 }
