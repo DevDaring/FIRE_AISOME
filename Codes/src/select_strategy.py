@@ -146,13 +146,22 @@ def main():
             results[name] = {"held_out_mean": round(float(np.mean(outs)), 4),
                              "held_out_std": round(float(np.std(outs)), 4),
                              "channels": keys}
+        # Rank by mean, but WARN that the ranking is unpaired. Each strategy's
+        # mean is computed over its own draw of splits, so comparing two means
+        # overstates differences: on this data the top Hindi pick looked +0.015
+        # better and a paired comparison on identical splits put it at +0.005,
+        # while the top Bengali pick looked +0.023 better and was actually
+        # -0.002 WORSE. Always confirm a proposed change with a paired test on
+        # shared splits before touching a submission.
         order = sorted(results.items(), key=lambda kv: -kv[1]["held_out_mean"])
         for n, r in order:
             print(f"  {n:14} held-out {r['held_out_mean']:.4f} "
                   f"+/-{r['held_out_std']:.3f}  {r['channels']}")
         win, wr = order[0]
-        print(f"  -> RECOMMEND {win}: {wr['channels']} "
+        print(f"  -> RANKED FIRST {win}: {wr['channels']} "
               f"(held-out {wr['held_out_mean']:.4f})")
+        print(f"     NOT a recommendation on its own — these means are UNPAIRED. "
+              f"Confirm with a paired delta on shared splits before changing a run.")
         report["languages"][lang] = {
             "solo": {k: round(v, 4) for k, v in solo.items()},
             "strategies": results, "recommended": win,
