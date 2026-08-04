@@ -11,15 +11,24 @@
       "rows": 500,
       "models": {
         "model1_label": {
-          "source": "artifacts/probs_fused2_hi.csv",
+          "source": "artifacts/probs_final_hi.csv",
           "distribution": {
-            "Against": 225,
-            "Favour": 179,
-            "None": 96
+            "Against": 209,
+            "Favour": 202,
+            "None": 89
           },
           "missing_ids": 0
         },
         "model2_label": {
+          "source": "artifacts/probs_stage2_hi.csv",
+          "distribution": {
+            "Against": 229,
+            "Favour": 186,
+            "None": 85
+          },
+          "missing_ids": 0
+        },
+        "model3_label": {
           "source": "artifacts/probs_distil_hi.cal.csv",
           "distribution": {
             "Against": 221,
@@ -27,34 +36,16 @@
             "None": 122
           },
           "missing_ids": 0
-        },
-        "model3_label": {
-          "source": "artifacts/probs_xlmr_hi.cal.csv",
-          "distribution": {
-            "Favour": 222,
-            "Against": 188,
-            "None": 90
-          },
-          "missing_ids": 0
         }
       },
-      "all_models_agree_frac": 0.732
+      "all_models_agree_frac": 0.834
     },
     "bengali": {
       "test_file": "Dataset/Testing_Data/Bangla_500_test data.xlsx",
       "rows": 500,
       "models": {
         "model1_label": {
-          "source": "artifacts/probs_fused2_bn.csv",
-          "distribution": {
-            "Against": 205,
-            "Favour": 174,
-            "None": 121
-          },
-          "missing_ids": 0
-        },
-        "model2_label": {
-          "source": "artifacts/probs_distil_bn.cal.csv",
+          "source": "artifacts/probs_final_bn.csv",
           "distribution": {
             "Against": 215,
             "Favour": 160,
@@ -62,17 +53,26 @@
           },
           "missing_ids": 0
         },
-        "model3_label": {
-          "source": "artifacts/probs_xlmr_bn.cal.csv",
+        "model2_label": {
+          "source": "artifacts/probs_equal5_bn.csv",
           "distribution": {
-            "Favour": 237,
-            "Against": 172,
-            "None": 91
+            "Against": 200,
+            "Favour": 192,
+            "None": 108
+          },
+          "missing_ids": 0
+        },
+        "model3_label": {
+          "source": "artifacts/probs_stage2_bn.csv",
+          "distribution": {
+            "Against": 209,
+            "Favour": 182,
+            "None": 109
           },
           "missing_ids": 0
         }
       },
-      "all_models_agree_frac": 0.758
+      "all_models_agree_frac": 0.886
     }
   }
 }
