@@ -45,11 +45,19 @@ from common import ARTIFACTS_DIR, BASE_DIR, load_env, write_json
 # /users/ are still v0; /instances/ has moved to v1 and v0 is Gone. _req() routes
 # per-path so a future move only needs an entry here.
 API_HOST = "https://console.vast.ai/api"
-_V1_PREFIXES = ("/instances",)
+
+# Vast.ai splits its API by version AND BY VERB on the same path, which is the
+# trap here. For /instances/: GET must go to v1 (v0 returns 410 Gone) while
+# DELETE must go to v0 (v1 returns 404). Routing purely on the path sent DELETE
+# to v1, `down` reported a 404, and the GPU kept billing -- the second time that
+# exact confusion has cost money on this project.
+_V1_GET_PREFIXES = ("/instances",)
 
 
-def _api_base(path: str) -> str:
-    return f"{API_HOST}/v1" if path.startswith(_V1_PREFIXES) else f"{API_HOST}/v0"
+def _api_base(path: str, method: str = "GET") -> str:
+    if method.upper() == "GET" and path.startswith(_V1_GET_PREFIXES):
+        return f"{API_HOST}/v1"
+    return f"{API_HOST}/v0"
 STATE = ARTIFACTS_DIR / "vast_instance.json"
 # CUDA + torch preinstalled; matches the transformers stack in requirements.txt
 IMAGE = "pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime"
@@ -86,7 +94,7 @@ def _key() -> str:
 
 
 def _req(method: str, path: str, **kw):
-    r = requests.request(method, f"{_api_base(path)}{path}",
+    r = requests.request(method, f"{_api_base(path, method)}{path}",
                          headers={"Authorization": f"Bearer {_key()}"},
                          timeout=60, **kw)
     if r.status_code == 410:
@@ -309,7 +317,8 @@ def cmd_train(args):
     subprocess.run(scp + [str(slim), f"root@{host}:{remote}/.env"], check=True)
     payload = [p for p in ARTIFACTS_DIR.glob("*.csv")
                if p.name.startswith(("train_en", "synth_train", "committee_",
-                                     "test_", "dev_gold", "seed_gold"))]
+                                     "test_", "dev_gold", "seed_gold",
+                                     "distil_", "dev_holdout"))]
     if not payload:
         raise SystemExit("no training artifacts to upload — run stage0/stage1 first")
     print(f"  {len(payload)} data files ({sum(p.stat().st_size for p in payload)//1024} KB)")

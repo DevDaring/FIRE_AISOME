@@ -66,3 +66,6 @@ Submission/Submission_Rules.pdf
 logs/
 Codes/logs/
 *.log
+
+# Large model checkpoints live on HuggingFace, not in git
+Codes/artifacts/model_*/
