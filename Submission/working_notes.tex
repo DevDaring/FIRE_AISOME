@@ -1,0 +1,618 @@
+%% Nirnay @ AISoMe 2026 (FIRE 2026) — working notes
+%% CEURART single-column style. Compile with pdflatex; needs ceurart.cls and the
+%% Libertinus fonts, both bundled with the template:
+%%   https://ceur-ws.org/Vol-XXX/CEURART.zip   or the Overleaf template
+%%   https://www.overleaf.com/latex/templates/template-for-submissions-to-ceur-workshop-proceedings-ceur-ws-dot-org/wqyfdgftmcfw
+\documentclass[twocolumn]{ceurart}
+
+\sloppy
+
+%% ---------------------------------------------------------------------------
+\begin{document}
+
+\copyrightyear{2026}
+\copyrightclause{Copyright \copyright{} 2026 for this paper by its authors.
+  Use permitted under Creative Commons License Attribution 4.0 International
+  (CC BY 4.0).}
+
+\conference{FIRE 2026: Forum for Information Retrieval Evaluation,
+  December 17--20, 2026, Indian Statistical Institute, Kolkata, India}
+
+\title{Nirnay at AISoMe 2026: Diagnose the Test Distribution First ---
+  Argument-Taxonomy Distillation and an English Pivot for Climate Stance
+  Detection in Hindi and Bengali}
+
+\author[1,2]{Koushik Deb}[
+  email=koushikdeb2009@gmail.com,
+  % orcid=0000-0000-0000-0000,   %% TODO add ORCID
+]
+\address[1]{Indian Institute of Information Technology Kalyani,
+  Kalyani, West Bengal, India}
+\address[2]{Accenture, Kolkata, West Bengal, India}
+%% TODO: add co-authors here if the team is more than one person, e.g.
+%% \author[1]{Second Author}[email=...]
+
+\begin{abstract}
+  The AISoMe 2026 track asks for the stance of Hindi and Bengali YouTube
+  comments towards the claim \emph{``climate change and global warming is a
+  serious concern''}, given only English training data. We report that the
+  decisive step was not modelling but \emph{measurement}: inspection of the
+  released evaluation files shows they are \textbf{machine-translated English}
+  comments from climate-science videos---zero romanised code-mixing, zero
+  emoji, two mentions of India in 500 Hindi comments, and recurring
+  US-centric arguments about a science communicator's credentials and the
+  ``97\,\% consensus'' figure. Building for that distribution rather than for
+  organic Indic social media reversed our design. We (i) formalise a 27-node
+  climate-argument taxonomy extending CARDS with an India-specific branch and
+  an explicit \textsc{None} inventory, and use it as a generative schema,
+  auxiliary supervision, and an annotation scaffold; (ii) distil a nine-model
+  LLM panel over the unlabelled test set into compact encoders; and
+  (iii) exploit the forensic finding a second time by \emph{back-translating
+  the test set to English} and classifying with an English-only encoder,
+  which sidesteps the cross-lingual problem instead of solving it. That last
+  step is worth $+0.10$ macro-F1 over the best multilingual configuration
+  ($p$aired over 300 shared splits, 100\,\% win rate). Our submitted system
+  reaches macro-F1 $0.922$ (Hindi) and $0.915$ (Bengali) on a held-out
+  development set. We are explicit that those development labels come from an
+  LLM judge panel rather than human annotation, and we report the reliability
+  evidence and its limits. We also document a methodological trap that cost us
+  a near-miss: comparing ensemble strategies by \emph{unpaired} means
+  overstated one gain by $+0.015$ and \emph{reversed the sign} of another.
+\end{abstract}
+
+\begin{keywords}
+  stance detection \sep
+  low-resource languages \sep
+  Hindi \sep
+  Bengali \sep
+  climate change \sep
+  knowledge distillation \sep
+  argument mining \sep
+  LLM annotation
+\end{keywords}
+
+\maketitle
+
+%% ---------------------------------------------------------------------------
+\section{Introduction}
+
+Stance detection asks how a text positions itself towards a fixed
+claim---not whether it is positive or negative, but whether it accepts or
+rejects a proposition. The AISoMe 2026 shared task at FIRE poses this for
+Indian-language social media: label a YouTube comment in Hindi or Bengali as
+\textsc{Favour}, \textsc{Against}, or \textsc{None} with respect to
+\emph{``climate change and global warming is a serious concern''}. The
+organisers supply \emph{English-only} training resources and evaluate on
+Hindi and Bengali, making cross-lingual transfer the nominal challenge, and
+rank runs by macro-F1.
+
+Two properties of the task shaped everything we did. First, macro-F1 weights
+each class equally, so the \textsc{Against} class---about 15\,\% of the
+permitted English pool---carries a full third of the score. A system that
+never confidently predicts \textsc{Against} is arithmetically capped near
+$0.45$ regardless of how well it does elsewhere. Second, and less obviously,
+the evaluation data is not what the task description leads one to expect. We
+therefore begin with a diagnostic rather than a model.
+
+\paragraph{Contributions.}
+\begin{enumerate}
+  \item \textbf{A forensic characterisation of the evaluation set}
+    (\S\ref{sec:forensics}) showing it consists of machine-translated English
+    comments, with the measurements that establish this and the four design
+    decisions that follow from it.
+  \item \textbf{A 27-node climate-argument taxonomy}
+    (\S\ref{sec:taxonomy}) extending CARDS~\cite{coan2021} with an
+    India-specific contrarian branch, a mirrored pro-climate branch, and an
+    explicit \textsc{None} inventory; used three ways and released as a
+    reusable resource.
+  \item \textbf{An English-pivot classifier} (\S\ref{sec:pivot}): back-translate
+    the test set and classify with an English-only encoder. Worth $+0.10$
+    macro-F1 over the best multilingual system.
+  \item \textbf{Transductive panel distillation} (\S\ref{sec:distil}) and
+    \textbf{macro-F1-aware calibration} (\S\ref{sec:calib}), each measured
+    separately.
+  \item \textbf{Two negative and two methodological results}
+    (\S\ref{sec:negative}) that we believe are more useful than another
+    architecture: refitting on more in-distribution labels \emph{hurt};
+    every ensemble was worse than the best single model; unpaired strategy
+    comparison is actively misleading at this development-set size; and an
+    evaluation-harness bug nearly caused us to discard our best system.
+\end{enumerate}
+
+%% ---------------------------------------------------------------------------
+\section{Task and Data}
+\label{sec:data}
+
+\paragraph{Evaluation data.}
+Two files of 500 comments each (Hindi, Bengali), columns \texttt{ID} and
+\texttt{COMMENT}, ids $1$--$500$ in both files. Runs are submitted as one file
+per language with up to three classifier columns.
+
+\paragraph{Permitted training data.}
+The track links two English stance corpora: \textbf{GWSD}~\cite{luo2020},
+2\,300 news sentences each annotated by eight crowd workers
+(agree/disagree/neutral); and \textbf{SemEval-2016 Task 6}~\cite{mohammad2016},
+restricted to the target \emph{``Climate Change is a Real Concern''}
+(395 tweets). Other public data, machine translation and synthetic generation
+are explicitly permitted, and the organisers encourage making the training set
+``more appropriate for the task''.
+
+We merge both sources into 2\,442 rows after de-duplication
+(\textsc{None} 1\,092 / \textsc{Favour} 983 / \textsc{Against} 367). For GWSD we
+retain the \emph{full crowd vote distribution} rather than only the majority
+label: an 8--0 vote and a 5--3 vote are very different training signals, and the
+soft target is a free regulariser for the small \textsc{Against} class. Mean
+GWSD annotator agreement is $0.72$.
+
+\paragraph{The class-balance problem.}
+Only $15.0\,\%$ of the pool is \textsc{Against}, and within SemEval-CC the rate
+is $3.8\,\%$ (15 of 395). Under macro-F1 this is not a detail; it is the task.
+
+%% ---------------------------------------------------------------------------
+\section{Test-Set Forensics}
+\label{sec:forensics}
+
+Before training anything we measured the released files. Table~\ref{tab:forensics}
+summarises what we found.
+
+\begin{table}[t]
+\centering
+\caption{Measurements over all 1\,000 evaluation comments. Organic Indian
+YouTube comments are short, emoji-heavy and substantially Roman-script; these
+are none of those things.}
+\label{tab:forensics}
+\begin{tabular}{lrr}
+\toprule
+Signal & Hindi & Bengali \\
+\midrule
+Comments naming one science communicator & 63 & 96 \\
+Roman-script code-mixing & 0 & 0 \\
+Comments containing any emoji & 0 & 0 \\
+Comments mentioning India & 2 & 3 \\
+Median length (characters) & 146 & 147 \\
+Dominant script & Devanagari & Bengali \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The register is uniformly formal, and the arguments are US-centric: attacks on
+a presenter's credentials (\emph{``not a scientist, a mechanical engineer''}),
+disputes over the ``97\,\%'' consensus figure, channel-merchandise spam,
+Abrahamic creationist framing (\emph{``why did God kill the dinosaurs''}), and
+school-assignment comments (\emph{``who else is here for online classes''}).
+Numerals appear in Devanagari and Bengali digits (\foreignlanguage{english}{९७\%}),
+and English names are transliterated. We conclude the evaluation set consists of
+\textbf{English YouTube comments machine-translated into Hindi and Bengali}.
+
+Number-signature matching (the multiset of numerals per comment, normalised
+across Devanagari, Bengali and ASCII digits) shows the two language files are
+\emph{different} comment samples rather than translations of the same 500
+English comments, so no cross-file alignment exploit exists.
+
+\paragraph{Four consequences.}
+This reverses the natural design.
+(1) \emph{Translate-test becomes the primary channel, not a fallback}:
+back-translating recovers near-original English, the native domain of GWSD,
+SemEval and every strong English encoder (\S\ref{sec:pivot}).
+(2) \emph{Provenance context helps annotation}: one sentence telling an LLM
+annotator that these are translated comments from a climate-science video
+resolves whole families of otherwise-ambiguous items.
+(3) \emph{Synthetic data must imitate translationese}, not authentic Indian
+slang---pure native script, formal register, no emoji, transliterated names.
+(4) \emph{The argument inventory to cover is the source community's}, not the
+target language's. Our India-specific taxonomy branch, designed before this
+measurement, became a minor slice rather than the centrepiece; we report it as
+an ablation and treat the reframing as the finding.
+
+%% ---------------------------------------------------------------------------
+\section{The Nirnay Argument Taxonomy}
+\label{sec:taxonomy}
+
+Cross-lingual stance transfer for climate discourse fails less because of
+\emph{language} mismatch than because of \emph{argument-inventory} mismatch.
+GWSD and SemEval encode a US contrarian idiom; translating them yields fluent
+Hindi sentences about Al Gore, which is grammatically perfect and
+pedagogically useless. We therefore pivot through the argument.
+
+Our taxonomy has \textbf{27 nodes} (13 \textsc{Against}, 7 \textsc{Favour},
+7 \textsc{None}) with 228 cue phrases across English, Hindi and Bengali:
+
+\begin{itemize}
+  \item \textbf{CARDS branch} (6 nodes), after Coan et al.~\cite{coan2021}:
+    not happening; not human-caused; impacts not bad; solutions will not work;
+    science unreliable; and one we added, \emph{attacks on the messenger},
+    which the forensics showed to be among the most frequent arguments present.
+  \item \textbf{India-specific contrarian branch} (7 nodes): climate
+    colonialism and whataboutism; development-first; local-weather naturalism;
+    cyclical or religious cosmology; media/TRP conspiracy; elite hypocrisy;
+    population-not-climate.
+  \item \textbf{Pro-climate branch} (7 nodes) grounded in lived experience:
+    floods and air quality; agricultural harm; health; intergenerational duty;
+    demands for action; support for mitigation; trust in science.
+  \item \textbf{\textsc{None} inventory} (7 nodes): channel praise; pure
+    questions; neutral facts; unrelated politics; spam; ambivalence; and
+    \emph{class-assignment} comments, again added after the forensics.
+\end{itemize}
+
+Two annotation traps are encoded explicitly, because they are where systems and
+annotators disagree most:
+\emph{sentiment is not stance}---\emph{``Shame on this government, they have
+destroyed our rivers!''} is \textsc{Favour} despite maximal negative
+sentiment---and \emph{praise of the video is not agreement with the
+claim}---\emph{``very informative, thank you''} is \textsc{None} even under a
+climate-alarm video.
+
+The taxonomy is used three ways, and that triple use is what makes it a
+contribution rather than a lexicon appendix: as a \emph{generative schema}
+(\S\ref{sec:synth}), as \emph{auxiliary supervision} (\S\ref{sec:encoder}), and
+as the \emph{reasoning scaffold} in the LLM annotation prompt
+(\S\ref{sec:distil}).
+
+%% ---------------------------------------------------------------------------
+\section{Method}
+
+\subsection{Taxonomy-conditioned synthetic augmentation}
+\label{sec:synth}
+
+We walk the product
+$\text{node} \times \text{language} \times \text{script} \times \text{register}$
+and prompt an LLM for realistic comments per cell. Because the stance is fixed
+by the cell, the corpus is \textbf{class-balanced by construction}. Following
+\S\ref{sec:forensics} we generate in \emph{translationese} style. The result is
+1\,040 comments covering all 27 nodes, $48\,\%$ \textsc{Against} against
+$15\,\%$ in the real pool, with provenance columns
+(node, branch, language, register, generator) retained for ablation.
+Near-duplicates are removed by token Jaccard within (node, language).
+
+\subsection{Transductive panel distillation}
+\label{sec:distil}
+
+The entire \emph{unlabelled} evaluation set is available at inference time.
+Using it is transduction, not leakage: no organiser-provided label is ever read.
+We run two disjoint LLM panels over all 1\,000 comments.
+
+A \textbf{teacher panel} of five cheap models from five different laboratories
+labels every comment, each required to name a taxonomy node \emph{before}
+emitting a stance---chain-of-thought with a fixed, auditable vocabulary. A
+\textbf{judge panel} of three stronger models then adjudicates, reading the
+Indic original \emph{and} its English back-translation together, with a fourth
+model adversarially challenging every proposed label.
+
+\begin{table}[t]
+\centering
+\caption{Panel reliability. The judge panel is disjoint from the teacher panel
+by construction and the code refuses to run if any model id appears in both.}
+\label{tab:panels}
+\begin{tabular}{lr}
+\toprule
+Measure & Value \\
+\midrule
+Teacher panel Fleiss' $\kappa$ (5 models) & 0.767 / 0.749 \\
+Judge panel Fleiss' $\kappa$ (3 models) & \textbf{0.859} \\
+Judge labels accepted (of 1\,000) & 971 \\
+Adversarial overturn rate & 2.8\,\% \\
+Teacher vs.\ judge agreement & 92.7\,\% \\
+Teacher macro-F1 against judge labels & 0.917 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The 971 accepted judge labels are split stratified by
+(language $\times$ label) into \textbf{727 distillation rows} and a
+\textbf{244-row held-out development set}, with a hard assertion that the two
+share no (language, id) key. Every number in \S\ref{sec:results} is measured on
+that held-out set.
+
+\subsection{Argument-aware encoder}
+\label{sec:encoder}
+
+Encoders carry two heads over a shared representation: a 3-way stance head
+trained with class-weighted cross-entropy plus a soft-label KL term, and an
+auxiliary 28-way \emph{argument-node} head with weight $\lambda = 0.3$. The
+auxiliary signal is free---synthetic rows are node-labelled by construction and
+the panels predict a node for every real comment---and it pushes the shared
+representation towards argument structure rather than surface lexical cues,
+which is the axis that transfers. Rows without a node are masked out of the
+auxiliary loss. We use class weighting rather than oversampling because
+duplicating rows distorts soft targets whereas reweighting does not.
+
+\subsection{The English pivot}
+\label{sec:pivot}
+
+This is the component that mattered most, and it follows directly from
+\S\ref{sec:forensics}. We back-translate all 1\,000 evaluation comments to
+English and fine-tune \textbf{DeBERTa-v3-large}~\cite{he2021} on an
+English-only pool: the 2\,442 GWSD/SemEval rows plus the back-translated
+judge-labelled test rows. Rather than asking a multilingual encoder to bridge
+English training and Indic evaluation, we move the evaluation to where the
+training already lives.
+
+\subsection{Macro-F1-aware calibration}
+\label{sec:calib}
+
+$\arg\max p(y \mid x)$ maximises accuracy, not macro-F1. We apply, in order,
+temperature scaling~\cite{guo2017}, prior-shift correction by the
+Saerens--Latinne--Decaestecker EM procedure~\cite{saerens2002}, and a
+coordinate search over per-class multiplicative weights. Crucially each stage is
+\textbf{accepted greedily}---kept only if it does not lower development
+macro-F1. This is not a formality: EM prior correction on Bengali would have
+taken one channel from $0.781$ to $0.200$ and was rejected automatically. We
+also floor and damp the EM update, because on an under-confident model the
+textbook procedure drives $p(\textsc{Against})$ to zero and removes the class
+entirely.
+
+%% ---------------------------------------------------------------------------
+\section{Experimental Setup}
+
+Backbones: MuRIL base/large~\cite{khanuja2021}, XLM-R base/large~\cite{conneau2020},
+IndicBERTv2~\cite{doddapaneni2023}, DeBERTa-v3-large~\cite{he2021}, and LaBSE~\cite{feng2022}
+as a frozen encoder. Max length 128, seed 20260502. Base models were trained on
+32 CPU cores; large models on a single rented RTX 4090 (bf16, flash-attention
+2.7.4 where the architecture implements it, otherwise PyTorch SDPA), at a total
+compute cost of USD 1.11. All three submitted runs are locally reproducible
+checkpoints with no API call at inference.
+
+We also evaluate a \textbf{projection channel} adapting the hybrid framework of
+Deb et al.~\cite{deb2026}: LaBSE embeddings are projected into a semantic space
+built from the taxonomy's gloss-and-cue embeddings by a KAN\,+\,SVR
+hybrid~\cite{liu2024}, and stance is read off cosine similarity aggregated over
+nodes. Here the taxonomy replaces ConceptNet as the knowledge source, which is
+both domain-matched and roughly nine times richer than a bare 3-way label space.
+
+%% ---------------------------------------------------------------------------
+\section{Results}
+\label{sec:results}
+
+\begin{table}[t]
+\centering
+\caption{Macro-F1 on the 244-row held-out development set (123 Hindi / 121
+Bengali), no overlap with any training data. \textbf{Bold} rows are submitted.}
+\label{tab:main}
+\begin{tabular}{lcc}
+\toprule
+System & hi & bn \\
+\midrule
+\multicolumn{3}{l}{\emph{English pivot}} \\
+\textbf{DeBERTa-v3-L + calibration} & \textbf{0.922} & \textbf{0.915} \\
+\quad without calibration & 0.904 & 0.892 \\
+\textbf{DeBERTa-v3-L, EN-only pool} & \textbf{0.886} & \textbf{0.877} \\
+\midrule
+\multicolumn{3}{l}{\emph{Native-script encoders}} \\
+\textbf{XLM-R-large} & \textbf{0.836} & \textbf{0.812} \\
+MuRIL-large & 0.807 & 0.790 \\
+IndicBERTv2 & 0.804 & 0.791 \\
+MuRIL-base, distilled & 0.758 & 0.781 \\
+XLM-R-base, distilled & 0.717 & 0.707 \\
+\midrule
+\multicolumn{3}{l}{\emph{Other channels}} \\
+Argument-KG projection (KAN+SVR) & 0.763 & 0.722 \\
+Claim-conditioned NLI (training-free) & 0.438 & 0.404 \\
+\midrule
+Best pre-pivot configuration & 0.810 & 0.779 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:main} gives the main result. The English pivot dominates every
+multilingual configuration by a wide margin. Paired over 300 shared half-splits
+against the best pre-pivot system, the calibrated pivot gains
+$+0.099$ (Hindi, $50.2$ SE, 100\,\% of splits) and $+0.115$ (Bengali,
+$58.9$ SE, 100\,\%).
+
+Before adopting a gain that large we verified it was not leakage: the English
+distillation pool shares \emph{zero} (language, id) keys with the development
+set, \emph{zero} development comment texts appear verbatim in any training text,
+and the GWSD/SemEval pool contains no evaluation comments at all.
+
+\paragraph{Component contributions.}
+Calibration is worth $+0.019$ to $+0.023$ on the pivot channel and $+0.04$ to
+$+0.08$ on base encoders. Model scale is worth $+0.05$ to $+0.08$
+(MuRIL-base $\rightarrow$ large; XLM-R-base $0.717 \rightarrow$ large $0.836$).
+The auxiliary node head and the soft-label term are both retained in the
+submitted configuration.
+
+\paragraph{Submitted runs.}
+Both language files carry
+\texttt{model1} $=$ calibrated English pivot,
+\texttt{model2} $=$ English-pool DeBERTa variant,
+\texttt{model3} $=$ XLM-R-large on native script. All three are trained
+classifiers; the three columns agree on $87.2\,\%$ (Hindi) and $86.4\,\%$
+(Bengali) of comments.
+
+%% ---------------------------------------------------------------------------
+\section{Negative and Methodological Results}
+\label{sec:negative}
+
+\paragraph{More in-distribution labels hurt.}
+Refitting the distilled encoder on all 971 judge labels rather than the 727 that
+exclude the development set made it \emph{worse} (hi $0.655$, bn $0.684$ versus
+$0.758$/$0.781$), despite then training on the very rows it was scored against.
+The likely cause is checkpoint selection: with an internal early-stopping split
+drawn from a pool that is $92\,\%$ synthetic and translated text, ``best epoch''
+is chosen against the wrong distribution. More data is not automatically better
+when it changes what you early-stop on.
+
+\paragraph{Every ensemble lost to the best single model.}
+Against the calibrated pivot, all tested blends were worse
+($-0.009$ to $-0.035$; most won $0\,\%$ of 300 splits). With $\approx$120
+development rows per language, combination weights cannot be estimated
+reliably, and a strong single model is the safer choice.
+
+\paragraph{Unpaired strategy comparison is misleading.}
+Our strategy selector ranked configurations by mean held-out macro-F1 over
+independently drawn half-splits. On identical splits, one apparent Hindi gain of
+$+0.015$ shrank to $+0.005$, and an apparent Bengali gain of $+0.023$
+\emph{reversed sign} to $-0.002$. Any ensembling decision at this data size must
+be made on paired differences over shared splits.
+
+\paragraph{An evaluation-harness bug nearly cost us the best system.}
+Our trainer's in-training development score for the English pivot read $0.574$,
+and a retry read $0.331$, so we briefly abandoned the idea. Both figures were
+artefacts: the harness evaluated using a text column that held the \emph{Indic}
+original, so an English-only model was being scored on Devanagari. The
+prediction path had been correct all along. We report this because the failure
+mode---a silent column mismatch producing a plausible-looking low score---is
+easy to repeat and hard to notice.
+
+%% ---------------------------------------------------------------------------
+\section{Error Analysis}
+
+The best system's weakest class is \textsc{None} in both languages
+($0.870$ hi, $0.863$ bn versus $\geq 0.92$ for \textsc{Against}). This matches
+where the taxonomy predicted difficulty: \textsc{None} is not a semantic
+category but the absence of a stance, and it collects channel praise,
+questions, neutral facts and ambivalence---categories whose boundary with
+\textsc{Favour} depends on a codebook decision rather than on the text. The
+most frequent confusions are \textsc{None}\,$\rightarrow$\,\textsc{Favour}
+(polite engagement read as agreement) and
+\textsc{Against}\,$\rightarrow$\,\textsc{Favour} (sarcasm surviving translation
+poorly).
+
+The most frequent arguments the panels assigned were
+\emph{demands for action} (D5), \emph{science unreliable} (A5),
+\emph{attacks on the messenger} (A6) and \emph{channel praise} (N1). That A6
+ranks fourth in Bengali is a direct vindication of adding it after the
+forensics.
+
+%% ---------------------------------------------------------------------------
+\section{Limitations}
+\label{sec:limitations}
+
+\paragraph{Development labels are not human gold.}
+This is the most important caveat. Our 244 development labels come from the
+LLM judge panel, so every figure in Table~\ref{tab:main} measures
+\emph{agreement with that panel}, not with ground truth. The panel's internal
+agreement is high ($\kappa = 0.859$) and a human reader reviewed and endorsed a
+15-comment sample, but that review was \emph{not} a blind annotation and
+therefore yields no independent agreement statistic. If the panel's reading of
+the \textsc{None} boundary differs systematically from the organisers', our
+official score will be lower than reported, and our calibration---fitted to the
+panel's class priors---may transfer poorly. We regard closing this gap with a
+blind human annotation of 50--150 comments as the single highest-value
+extension of this work.
+
+\paragraph{The pivot requires machine translation at inference.}
+\texttt{model1} consumes back-translated English. The classifier is a local
+checkpoint with no API dependency, but reproducing the run requires either the
+back-translated files (which we release) or a re-translation step. Machine
+translation is standard and organiser-encouraged for this task, but it is a
+pipeline dependency and we state it plainly.
+
+\paragraph{Synthetic data reflects LLM priors.}
+The 1\,040 generated comments encode a language model's \emph{model} of Indian
+climate discourse, which is not the same thing as that discourse.
+
+\paragraph{Small development set.}
+$\approx$120 rows per language; all ensembling conclusions are correspondingly
+weak, which is itself one of our findings.
+
+%% ---------------------------------------------------------------------------
+\section{Conclusion}
+
+The lesson we would carry to another cross-lingual shared task is procedural:
+\emph{measure the evaluation distribution before choosing a transfer strategy}.
+Here the nominal problem was Hindi and Bengali social media; the actual problem
+was translated English, and recognising that was worth more than every
+architectural choice we made combined. The argument taxonomy, the synthetic
+corpus and the judge labels are released so that the pieces can be reused and,
+where we were wrong, corrected.
+
+%% ---------------------------------------------------------------------------
+\section*{Declaration on Generative AI}
+
+The author declares the following uses of generative AI tools in the
+preparation of this work.
+
+\textbf{In the research pipeline}, generative AI is a studied component rather
+than an incidental aid, and its role is described in full in
+\S\ref{sec:synth}--\S\ref{sec:distil}. Specifically: large language models
+generated the 1\,040-comment synthetic training corpus; a five-model panel and a
+three-model judge panel produced the pseudo-labels distilled into the submitted
+classifiers and the development labels used for calibration; and LLM-based
+machine translation produced the Hindi/Bengali training translations and the
+English back-translations on which the primary submitted run operates. No
+organiser-provided gold label was used at any point. The limitations of relying
+on LLM-generated development labels are stated in \S\ref{sec:limitations}.
+
+\textbf{In preparing this manuscript}, the author used an AI assistant
+(Anthropic Claude) for code implementation, experiment orchestration, and
+drafting and editing of this text. All experimental design decisions, the
+forensic analysis, the interpretation of results, and the final content are the
+author's own, and the author reviewed and verified all reported numbers and
+takes full responsibility for the publication's content.
+
+%% ---------------------------------------------------------------------------
+\begin{thebibliography}{99}
+
+\bibitem{coan2021}
+T.\ G.\ Coan, C.\ Boussalis, J.\ Cook, M.\ O.\ Nanko,
+Computer-assisted classification of contrarian claims about climate change,
+Scientific Reports 11 (2021) 22320.
+
+\bibitem{luo2020}
+Y.\ Luo, D.\ Card, D.\ Jurafsky,
+Detecting stance in media on global warming,
+in: Findings of EMNLP 2020, pp.\ 3296--3315.
+
+\bibitem{mohammad2016}
+S.\ Mohammad, S.\ Kiritchenko, P.\ Sobhani, X.\ Zhu, C.\ Cherry,
+SemEval-2016 Task 6: Detecting stance in tweets,
+in: Proceedings of SemEval-2016, pp.\ 31--41.
+
+\bibitem{khanuja2021}
+S.\ Khanuja et al.,
+MuRIL: Multilingual representations for Indian languages,
+arXiv:2103.10730 (2021).
+
+\bibitem{conneau2020}
+A.\ Conneau et al.,
+Unsupervised cross-lingual representation learning at scale,
+in: Proceedings of ACL 2020, pp.\ 8440--8451.
+
+\bibitem{he2021}
+P.\ He, J.\ Gao, W.\ Chen,
+DeBERTaV3: Improving DeBERTa using ELECTRA-style pre-training with
+gradient-disentangled embedding sharing,
+in: Proceedings of ICLR 2023.
+
+\bibitem{doddapaneni2023}
+S.\ Doddapaneni et al.,
+Towards leaving no Indic language behind: Building monolingual corpora,
+benchmark and models for Indic languages,
+in: Proceedings of ACL 2023, pp.\ 12402--12426.
+
+\bibitem{feng2022}
+F.\ Feng, Y.\ Yang, D.\ Cer, N.\ Arivazhagan, W.\ Wang,
+Language-agnostic BERT sentence embedding,
+in: Proceedings of ACL 2022, pp.\ 878--891.
+
+\bibitem{guo2017}
+C.\ Guo, G.\ Pleiss, Y.\ Sun, K.\ Q.\ Weinberger,
+On calibration of modern neural networks,
+in: Proceedings of ICML 2017, pp.\ 1321--1330.
+
+\bibitem{saerens2002}
+M.\ Saerens, P.\ Latinne, C.\ Decaestecker,
+Adjusting the outputs of a classifier to new a priori probabilities:
+A simple procedure,
+Neural Computation 14 (2002) 21--41.
+
+\bibitem{liu2024}
+Z.\ Liu et al.,
+KAN: Kolmogorov--Arnold networks,
+arXiv:2404.19756 (2024).
+
+\bibitem{deb2026}
+K.\ Deb, I.\ Mukherjee, D.\ K.\ Sanyal,
+Hybrid projection methods for multilingual zero-shot text classification,
+submitted (2026).
+
+\bibitem{das2025}
+S.\ Das et al.,
+Referenced by the AISoMe 2026 track organisers as methodological guidance,
+Sustainable Cities and Society (2025).
+%% TODO: replace with the full citation once the paper is consulted
+
+\end{thebibliography}
+
+\end{document}

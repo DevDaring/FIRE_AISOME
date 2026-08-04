@@ -299,7 +299,9 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
     <div class="eyebrow">Team Nirnay &nbsp;·&nbsp; AISoMe 2026 @ FIRE, ISI Kolkata</div>
     <h1 class="mast-title"><span class="setu">SETU</span> — how we build the submission</h1>
     <p class="mast-sub">Every step of the pipeline in plain language, with a real worked
-    example from the actual test files at each stage.</p>
+    example from the actual test files at each stage. <strong>Complete:</strong>
+    development macro-F1 0.922 (Hindi) / 0.915 (Bengali), submission validated and
+    ready to upload.</p>
     <div class="mast-meta">
       <div><b>Team</b> &nbsp;Nirnay — निर्णय / নির্ণয়, “judgement”</div>
       <div><b>Task</b> &nbsp;stance of a YouTube comment</div>
@@ -317,56 +319,130 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
 <section class="sec" id="status">
   <div class="col stack g20">
     <div class="sec-head">
-      <div class="eyebrow">Where we are &nbsp;·&nbsp; 2 August 2026</div>
-      <h2>Live status</h2>
+      <div class="eyebrow">Final state &nbsp;·&nbsp; 4 August 2026</div>
+      <h2>Done — a validated submission is on disk</h2>
     </div>
+
+    <div class="call">
+      <div class="eyebrow">Result</div>
+      <p style="font-size:1.1rem;">Development macro-F1 <strong>0.922</strong> (Hindi)
+      and <strong>0.915</strong> (Bengali) — up from 0.810 / 0.779 before the final
+      change. Total compute cost for the whole project: <strong>$1.11</strong>.</p>
+    </div>
+
     <div class="status-band">
       <div class="status-row done"><span class="mark">✓</span>
-        <span>English training pool built<span class="detail"> — 2,442 rows: 983 Favour, 367 Against, 1,092 None</span></span>
+        <span>Test files read and characterised<span class="detail"> — the finding that reshaped everything</span></span>
         <span class="who">done</span></div>
       <div class="status-row done"><span class="mark">✓</span>
-        <span>Test files read and normalised<span class="detail"> — 500 Hindi + 500 Bengali, IDs preserved exactly</span></span>
+        <span>27-node argument taxonomy built<span class="detail"> — 228 cue phrases across en/hi/bn</span></span>
         <span class="who">done</span></div>
       <div class="status-row done"><span class="mark">✓</span>
-        <span>Code pushed to GitHub, secrets and test data excluded<span class="detail"> — repo set private for now</span></span>
+        <span>Synthetic corpus generated<span class="detail"> — 1,040 comments, 48&nbsp;% Against against 15&nbsp;% in the real pool</span></span>
         <span class="who">done</span></div>
       <div class="status-row done"><span class="mark">✓</span>
-        <span>All 8 AI models verified live, teacher and judge tiers disjoint</span>
+        <span>AI panels labelled all 1,000 comments<span class="detail"> — 5 teachers, then 3 stronger judges with adversarial review</span></span>
         <span class="who">done</span></div>
       <div class="status-row done"><span class="mark">✓</span>
-        <span>Synthetic corpus generated<span class="detail"> — 1,040 comments, all 27 argument nodes covered, <strong>48&nbsp;% Against</strong> against 15&nbsp;% in the real pool</span></span>
+        <span>Leak-free answer key split<span class="detail"> — 727 for training, 244 held out, zero shared keys</span></span>
         <span class="who">done</span></div>
-      <div class="status-row live"><span class="mark">▶</span>
-        <span>Translating the English pool into Hindi and Bengali<span class="detail"> — Hindi complete, Bengali running</span></span>
-        <span class="who">running</span></div>
-      <div class="status-row live"><span class="mark">▶</span>
-        <span>AI teacher panel labelling all 1,000 test comments<span class="detail"> — 4 of 5 models complete</span></span>
-        <span class="who">running</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Eight model families trained and calibrated<span class="detail"> — base and large, native-script and English</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span><strong>English pivot adopted</strong><span class="detail"> — +0.10 macro-F1, winning 100&nbsp;% of 300 paired splits</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Submission built and validated<span class="detail"> — 500 rows/file, exact header, ids in original order</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Code on GitHub, models and taxonomy on HuggingFace</span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Rented GPU destroyed<span class="detail"> — 0 instances billing, $7.21 credit left</span></span>
+        <span class="who">done</span></div>
+      <div class="status-row done"><span class="mark">✓</span>
+        <span>Working notes drafted<span class="detail"> — CEURART paper at Submission/working_notes.tex</span></span>
+        <span class="who">done</span></div>
       <div class="status-row block"><span class="mark">!</span>
-        <span><strong>Confirm the real deadline with the organizers</strong><span class="detail"> — test data arrived after the published date; nobody knows the new one</span></span>
+        <span><strong>Upload the ZIP to the organizers</strong><span class="detail"> — deadline 7 August; not submitting is the only guaranteed loss</span></span>
         <span class="who you">you</span></div>
-      <div class="status-row done"><span class="mark">✓</span>
-        <span>All Google/Gemini API usage removed<span class="detail"> — every provider is now DeepSeek's own API or a paid OpenRouter model</span></span>
-        <span class="who">done</span></div>
-      <div class="status-row done"><span class="mark">✓</span>
-        <span>Test comments back-translated to English<span class="detail"> — 1,000 in 75 seconds on DeepSeek, zero retries</span></span>
-        <span class="who">done</span></div>
-      <div class="status-row live"><span class="mark">▶</span>
-        <span>Four strong AI judges building the answer key<span class="detail"> — 300 comments, adversarially challenged; replaces the 40 hand labels</span></span>
-        <span class="who">running</span></div>
       <div class="status-row block"><span class="mark">!</span>
-        <span><strong>Spot-check 15 comments</strong><span class="detail"> — ~5 min; the one thing an AI cannot do for itself (see below)</span></span>
+        <span><strong>Blind-label 50 comments</strong><span class="detail"> — ~2 hrs; the only way to know whether 0.922 is real (see below)</span></span>
         <span class="who you">you</span></div>
-      <div class="status-row wait"><span class="mark">·</span>
-        <span>Train MuRIL and XLM-R on a rented GPU</span><span class="who">queued</span></div>
-      <div class="status-row wait"><span class="mark">·</span>
-        <span>Calibrate, blend, build and validate the ZIP</span><span class="who">queued</span></div>
+      <div class="status-row block"><span class="mark">!</span>
+        <span>Fill in co-authors, ORCID and the Das&nbsp;2025 citation in the paper<span class="detail"> — due 20 September</span></span>
+        <span class="who you">you</span></div>
     </div>
-    <p style="font-size:.95rem; color:var(--ink-2);">The two items marked
-    <strong style="color:var(--against);">you</strong> are the only things holding the
-    project up. Full detail in
-    <code>Required_Action.md</code>; the complete task list is
-    <a href="#todo">at the end of this page</a>.</p>
+    <p style="font-size:.95rem; color:var(--ink-2);">Full detail in
+    <code>Required_Action.md</code>. The three red rows are the only things left.</p>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="sec" id="results">
+  <div class="col stack g20">
+    <div class="sec-head">
+      <div class="eyebrow">What we submitted, and what it scores</div>
+      <h2>Results</h2>
+    </div>
+    <p>All figures are macro-F1 on a 244-comment held-out set that shares no row
+    with any training data. Read the caveat below before trusting them.</p>
+    <div class="tbl-wrap">
+      <table>
+        <caption>Held-out development macro-F1 · bold rows are submitted</caption>
+        <thead><tr><th>System</th><th class="num">Hindi</th><th class="num">Bengali</th></tr></thead>
+        <tbody>
+          <tr><td><strong>DeBERTa-v3-large, English pivot, calibrated</strong> ← <code>model1</code></td><td class="num"><strong>0.922</strong></td><td class="num"><strong>0.915</strong></td></tr>
+          <tr><td><strong>DeBERTa-v3-large, English-only pool</strong> ← <code>model2</code></td><td class="num"><strong>0.886</strong></td><td class="num"><strong>0.877</strong></td></tr>
+          <tr><td><strong>XLM-R-large, native script</strong> ← <code>model3</code></td><td class="num"><strong>0.836</strong></td><td class="num"><strong>0.812</strong></td></tr>
+          <tr><td>MuRIL-large</td><td class="num">0.807</td><td class="num">0.790</td></tr>
+          <tr><td>IndicBERTv2</td><td class="num">0.804</td><td class="num">0.791</td></tr>
+          <tr><td>Argument-KG projection (KAN + SVR)</td><td class="num">0.763</td><td class="num">0.722</td></tr>
+          <tr><td>MuRIL-base, distilled</td><td class="num">0.758</td><td class="num">0.781</td></tr>
+          <tr><td>Claim-conditioned NLI (no training)</td><td class="num">0.438</td><td class="num">0.404</td></tr>
+          <tr><td><em>best configuration before the English pivot</em></td><td class="num"><em>0.810</em></td><td class="num"><em>0.779</em></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The change that mattered</h3>
+    <p>Because the comments are translated English, we translated them
+    <em>back</em> and classified with an English-only model. That
+    <strong>sidesteps</strong> the cross-lingual problem rather than solving it.
+    Measured against the best previous system on 300 identical data splits it
+    gained <strong>+0.099</strong> (Hindi) and <strong>+0.115</strong> (Bengali),
+    winning <strong>100&nbsp;% of splits</strong>. Before accepting a jump that
+    large we confirmed it was not leakage: the English training pool shares no
+    comment id and no comment text with the held-out set.</p>
+
+    <div class="call warn">
+      <div class="eyebrow">The honest caveat</div>
+      <p>These numbers measure <strong>agreement with our AI judge panel</strong>,
+      not with the organizers' annotators. The panel agrees with itself well
+      (Fleiss’ κ 0.859) and you reviewed 15 labels, but that review was not
+      blind, so it gives no independent figure.</p>
+      <p>Our weakest class is <code>None</code> (0.870 / 0.863) — and
+      <code>None</code> is exactly where careful humans disagree. If the
+      organizers drew that boundary differently, the official score will be lower.
+      <strong>Blind-labelling 50 comments is the only way to find out</strong>, and
+      it is two hours.</p>
+    </div>
+
+    <h3>Four things that did not work</h3>
+    <p>Worth recording, because they were each plausible:</p>
+    <ul class="tight">
+      <li><strong>Training on more in-distribution labels made the model worse</strong>
+      (0.758 → 0.655 on Hindi), even though it then trained on the rows it was
+      scored against. Early stopping was being chosen against a pool that is
+      92&nbsp;% synthetic and translated text.</li>
+      <li><strong>Every ensemble lost to the best single model.</strong> With ~120
+      development rows per language, blend weights cannot be estimated reliably.</li>
+      <li><strong>The training-free NLI channel earned a weight of exactly zero</strong>
+      in every fusion search.</li>
+      <li><strong>Two-stage fine-tuning came out tied</strong>, so the hypothesis
+      that in-distribution labels were being diluted was simply wrong.</li>
+    </ul>
   </div>
 </section>
 
@@ -652,11 +728,12 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
     </div>
     <nav class="toc" aria-label="Stages">
       <ol>
+        <li><a href="#results"><span class="tn">→</span><span class="tt">Results — what we submitted and what it scores</span><span class="tm">jump ahead</span></a></li>
         <li><a href="#s0"><span class="tn">0</span><span class="tt">Build the practice material</span><span class="tm">~1 hr · no test data needed</span></a></li>
         <li><a href="#s1"><span class="tn">1</span><span class="tt">Read the test files and ask the AI panel</span><span class="tm">~1 hr</span></a></li>
-        <li><a href="#s2"><span class="tn">2</span><span class="tt">Build the answer key — 40 by hand, 300 by AI judges</span><span class="tm">~25 min of you</span></a></li>
-        <li><a href="#s3"><span class="tn">3</span><span class="tt">Train our own models</span><span class="tm">2–6 hrs · unattended</span></a></li>
-        <li><a href="#s4"><span class="tn">4</span><span class="tt">Add the third opinion, tune, and blend</span><span class="tm">~1 hr</span></a></li>
+        <li><a href="#s2"><span class="tn">2</span><span class="tt">Build the answer key — AI judges, spot-checked by you</span><span class="tm">~5 min of you</span></a></li>
+        <li><a href="#s3"><span class="tn">3</span><span class="tt">Train our own models</span><span class="tm">unattended · CPU, then a rented GPU</span></a></li>
+        <li><a href="#s4"><span class="tn">4</span><span class="tt">Add other channels, tune, and choose honestly</span><span class="tm">~1 hr</span></a></li>
         <li><a href="#s5"><span class="tn">5</span><span class="tt">Build and check the submission</span><span class="tm">~15 min</span></a></li>
       </ol>
     </nav>
@@ -1254,63 +1331,54 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
       <div class="eyebrow">Everything, in order</div>
       <h2>The full task list</h2>
     </div>
-    <p>Rows in red are yours. Everything else I can run.</p>
+    <p>Rows in red are yours. Everything else is finished.</p>
 
     <div class="todo">
-      <div class="todo-grp">Setup — complete</div>
+      <div class="todo-grp">Diagnosis and resources — complete</div>
       <div class="todo-item done"><span class="mark">✓</span><span class="t">Read the track rules and the exact submission format
         <span class="m">one file per language · id, model1_label, model2_label, model3_label · zipped</span></span></div>
-      <div class="todo-item done"><span class="mark">✓</span><span class="t">Forensics on the test files — found they are translated Bill Nye comments
-        <span class="m">63 and 96 mentions of Bill Nye · zero emoji · zero Roman-script code-mix</span></span></div>
-      <div class="todo-item done"><span class="mark">✓</span><span class="t">Build the 27-node climate-argument taxonomy
-        <span class="m">Codes/src/taxonomy.py · 228 cue phrases across English, Hindi, Bengali</span></span></div>
-      <div class="todo-item done"><span class="mark">✓</span><span class="t">Fix the two silent bugs that would have capped the score
-        <span class="m">the label "None" parsed as missing data · text columns undetectable on pandas 3</span></span></div>
-      <div class="todo-item done"><span class="mark">✓</span><span class="t">Verify all 8 AI models are live and the two tiers do not overlap
-        <span class="m">python3.12 src/llm.py — three model IDs had been retired and were replaced</span></span></div>
-      <div class="todo-item done"><span class="mark">✓</span><span class="t">Push code to GitHub, private, with secrets and test data excluded
-        <span class="m">28 files · token scrubbed from .git/config after pushing</span></span></div>
-      <div class="todo-item done"><span class="mark">✓</span><span class="t">Create the HuggingFace model and dataset repos
-        <span class="m">Debk/nirnay-aisome2026-setu · Debk/nirnay-aisome2026-data</span></span></div>
-      <div class="todo-item done"><span class="mark">✓</span><span class="t">Write the GPU rental tooling with spend guards
-        <span class="m">Codes/src/vast_gpu.py · refuses to rent above budget · auto-teardown</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Characterised the test files — translated English, not organic Indic social media
+        <span class="m">zero emoji · zero Roman-script code-mix · 2 mentions of India in 500 Hindi comments</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Built the 27-node climate-argument taxonomy
+        <span class="m">13 Against / 7 Favour / 7 None · 228 cue phrases · used as schema, supervision and prompt scaffold</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Generated 1,040 taxonomy-conditioned synthetic comments
+        <span class="m">48&nbsp;% Against by construction, against 15&nbsp;% in the permitted pool</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Translated the English pool into Hindi and Bengali; back-translated the test set</span></div>
 
-      <div class="todo-grp">Stage 0–1 — running now</div>
-      <div class="todo-item live"><span class="mark">▶</span><span class="t">Generate the synthetic corpus in translated-English style
-        <span class="m">3 generators round-robin over 270 taxonomy cells</span></span></div>
-      <div class="todo-item live"><span class="mark">▶</span><span class="t">Translate the English pool into Hindi and Bengali
-        <span class="m">batched 20 per request · every translation cached to disk</span></span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Run the AI teacher panel over all 1,000 test comments
-        <span class="m">5 models from 5 different labs · argument named before stance</span></span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Back-translate the test comments into English
-        <span class="m">recovers near-original text and feeds the judges in Stage 2</span></span></div>
+      <div class="todo-grp">Labels and evaluation — complete</div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Five-model teacher panel labelled all 1,000 comments
+        <span class="m">argument named before stance · Fleiss’ κ 0.75–0.77</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Three stronger judges re-adjudicated through the English pivot
+        <span class="m">Fleiss’ κ 0.859 · adversarial challenger overturned only 2.8&nbsp;%</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Split the answer key with zero leakage
+        <span class="m">727 rows for distillation, 244 held out, hard assertion on shared keys</span></span></div>
 
-      <div class="todo-grp">Stage 2 — blocked on you</div>
-      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Confirm the real deadline with the organizers</strong>
-        <span class="m">email aisome.fire2026@gmail.com · also ask whether CSV or XLSX is required</span></span></div>
-      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Spot-check 15 comments (~5 minutes)</strong>
-        <span class="m">open artifacts/spot_check.csv and fill `your_label` — the one check AI cannot do on itself</span></span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">AI judges build the answer key and get scored on your 40
-        <span class="m">bash run_all.sh silver · read the verdict before continuing</span></span></div>
+      <div class="todo-grp">Modelling — complete</div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Distilled the panels into MuRIL and XLM-R with an argument-node auxiliary head</span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Added IndicBERTv2, a second seed, and the KAN+SVR projection channel</span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Rented a GPU on bandwidth, trained three large backbones
+        <span class="m">dry run at 2 samples then 200 rows before any full run · flash-attn pre-compiled · $1.11 total</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Adopted the English pivot after a paired test
+        <span class="m">+0.10 macro-F1, 100&nbsp;% of 300 shared splits, leakage ruled out</span></span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Calibrated every channel for macro-F1, rejecting stages that did not help</span></div>
 
-      <div class="todo-grp">Stage 3–5 — after the answer key exists</div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Rent a GPU and fine-tune MuRIL and XLM-R
-        <span class="m">~$0.50 total · both backbones in well under an hour</span></span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Self-train: distil the panel, absorb confident predictions, repeat
-        <span class="m">per-label quotas and a panel veto stop the Against class collapsing</span></span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Score the training-free NLI channel</span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Tune each model's decision rule for macro-F1
-        <span class="m">stages kept only if they actually improve the score</span></span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Blend the three local channels with weights searched on the answer key</span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Build the ZIP with strict validation, then open it and look at it</span></div>
-      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Submit the ZIP to the organizers</strong>
-        <span class="m">and record which system went into which column — the paper needs it in September</span></span></div>
+      <div class="todo-grp">Delivery — complete</div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Built and validated the submission ZIP</span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Destroyed the rented GPU and verified nothing is billing</span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Pushed code to GitHub; models and taxonomy to HuggingFace</span></div>
+      <div class="todo-item done"><span class="mark">✓</span><span class="t">Drafted the CEUR working notes
+        <span class="m">Submission/working_notes.tex · includes the mandatory Declaration on Generative AI</span></span></div>
 
-      <div class="todo-grp">After the deadline</div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Push checkpoints and the synthetic corpus to HuggingFace</span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Make the GitHub repo public</span></div>
-      <div class="todo-item wait"><span class="mark">·</span><span class="t">Write the CEUR working notes — due 20 September
-        <span class="m">outline already drafted in Submission/WORKING_NOTES_OUTLINE.md</span></span></div>
+      <div class="todo-grp">Yours</div>
+      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Upload the ZIP before 7 August</strong>
+        <span class="m">Submission/runs/Nirnay_AISoMe2026_submission.zip — and confirm the deadline hour and CSV-vs-XLSX</span></span></div>
+      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Blind-label 50 comments (~2 hours)</strong>
+        <span class="m">the only way to learn whether 0.922 reflects reality or just agreement with our own AI judges</span></span></div>
+      <div class="todo-item you"><span class="mark">!</span><span class="t"><strong>Finish the paper: co-authors, ORCID, the Das 2025 citation</strong>
+        <span class="m">due 20 September · read the Generative AI declaration and confirm it describes your involvement accurately</span></span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">After results are declared: make the GitHub and HuggingFace repos public</span></div>
+      <div class="todo-item wait"><span class="mark">·</span><span class="t">Present at FIRE 2026, ISI Kolkata, 17–20 December
+        <span class="m">required to be declared a winner</span></span></div>
     </div>
   </div>
 </section>
@@ -1319,23 +1387,22 @@ footer{border-top:1px solid var(--rule-strong); padding:28px 0 56px; color:var(-
 <section class="sec" id="checklist">
   <div class="col stack g20">
     <div class="sec-head">
-      <div class="eyebrow">Before you submit</div>
+      <div class="eyebrow">Before you upload</div>
       <h2>Final checklist</h2>
     </div>
+    <p>The first four are already verified; the rest are yours.</p>
     <div class="check">
-      <div class="item"><div class="box" aria-hidden="true"></div><span><code>python3.12 src/llm.py</code> run — every teacher and judge model answers, and the two tiers are disjoint</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>Stage 0 finished — generated comments and translations are saved</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>AI panel has run on both languages, and the agreement figures look sane</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>15 comments spot-checked by hand</strong>, and you agreed with <strong>13 or more</strong></span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>Our trained models beat the AI panel on the answer key</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>No submitted column depends on an API call</strong> — all three are local checkpoints</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>Tuning applied per language, and it improved rather than hurt the score</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>The blend beats every single channel on your 150 comments</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>Submission built with checking on — no warnings suppressed</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>ZIP opened and eyeballed: correct header, 500 rows per file, IDs in the original order</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>No column predicts a single label for every comment</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span>Noted down which system went into which column — you will need it for the paper in September</span></div>
-      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>Deadline confirmed with the organizers</strong> — the test data arrived after the date originally published, so the schedule has clearly moved</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>✓ verified</strong> — 500 rows per file, header exactly <code>id,model1_label,model2_label,model3_label</code></span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>✓ verified</strong> — ids byte-identical to the organizers’ xlsx, in the original order</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>✓ verified</strong> — every label is Favour, Against or None; no blanks; no column predicting a single class</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>✓ verified</strong> — no submitted column depends on an API call; all three are local checkpoints</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Open the ZIP yourself and look at both files</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Confirm the deadline hour and timezone with the organizers</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Confirm they accept CSV (they do per their email) rather than XLSX</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span><strong>Upload it</strong> — not submitting is the only guaranteed loss</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Keep <code>submission_report.json</code> — it records which system is in which column, and the paper needs that in September</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Blind-label 50 comments so the reported scores can be checked against a human</span></div>
+      <div class="item"><div class="box" aria-hidden="true"></div><span>Ship <code>test_hi_en.csv</code> / <code>test_bn_en.csv</code> if the organizers ask to reproduce <code>model1</code> — it reads the back-translated English view</span></div>
     </div>
   </div>
 </section>
