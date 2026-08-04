@@ -11,20 +11,20 @@
       "rows": 500,
       "models": {
         "model1_label": {
-          "source": "artifacts/probs_fused_hi.csv",
+          "source": "artifacts/probs_fused2_hi.csv",
           "distribution": {
-            "Against": 215,
-            "Favour": 209,
-            "None": 76
+            "Against": 225,
+            "Favour": 179,
+            "None": 96
           },
           "missing_ids": 0
         },
         "model2_label": {
-          "source": "artifacts/probs_setu_hi.cal.csv",
+          "source": "artifacts/probs_distil_hi.cal.csv",
           "distribution": {
-            "Against": 239,
-            "Favour": 169,
-            "None": 92
+            "Against": 221,
+            "Favour": 157,
+            "None": 122
           },
           "missing_ids": 0
         },
@@ -38,27 +38,27 @@
           "missing_ids": 0
         }
       },
-      "all_models_agree_frac": 0.752
+      "all_models_agree_frac": 0.732
     },
     "bengali": {
       "test_file": "Dataset/Testing_Data/Bangla_500_test data.xlsx",
       "rows": 500,
       "models": {
         "model1_label": {
-          "source": "artifacts/probs_fused_bn.csv",
+          "source": "artifacts/probs_fused2_bn.csv",
           "distribution": {
-            "Favour": 214,
-            "Against": 198,
-            "None": 88
+            "Against": 205,
+            "Favour": 174,
+            "None": 121
           },
           "missing_ids": 0
         },
         "model2_label": {
-          "source": "artifacts/probs_setu_bn.cal.csv",
+          "source": "artifacts/probs_distil_bn.cal.csv",
           "distribution": {
-            "Favour": 190,
-            "Against": 188,
-            "None": 122
+            "Against": 215,
+            "Favour": 160,
+            "None": 125
           },
           "missing_ids": 0
         },
@@ -72,7 +72,7 @@
           "missing_ids": 0
         }
       },
-      "all_models_agree_frac": 0.778
+      "all_models_agree_frac": 0.758
     }
   }
 }

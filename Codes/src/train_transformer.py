@@ -252,6 +252,14 @@ def main():
                     choices=["class_weight", "oversample", "none"])
     ap.add_argument("--grad-accum", type=int, default=1)
     ap.add_argument("--max-train", type=int, default=0, help="smoke test with N rows")
+    ap.add_argument("--init-from", default=None,
+                    help="resume from an existing SETU checkpoint directory instead "
+                         "of the raw pretrained backbone. Enables two-stage "
+                         "domain-adaptive fine-tuning: stage 1 on the large "
+                         "off-distribution pool, stage 2 on in-distribution labels "
+                         "only at a low LR. Without it the 727 judge-labelled test "
+                         "rows are 8% of a 9k pool and get drowned out by translated "
+                         "and synthetic text.")
     ap.add_argument("--attn", default="auto",
                     choices=["auto", "flash", "flash_attention_2", "sdpa", "eager"],
                     help="attention kernel; 'auto' tries flash_attention_2 then sdpa")
@@ -331,6 +339,19 @@ def main():
 
     model = build_model(args.model, args.aux_weight, class_weights, args.soft_alpha,
                         args.label_smoothing, attn=args.attn)
+    if args.init_from:
+        ckpt_path = Path(args.init_from) / "setu_model.pt"
+        if not ckpt_path.exists():
+            raise SystemExit(f"--init-from {args.init_from}: no setu_model.pt")
+        ck = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+        if ck.get("model_name") != args.model:
+            raise SystemExit(
+                f"--init-from backbone mismatch: checkpoint is "
+                f"{ck.get('model_name')!r} but --model is {args.model!r}")
+        missing, unexpected = model.load_state_dict(ck["state_dict"], strict=False)
+        print(f"resumed from {args.init_from}"
+              + (f" (missing {len(missing)}, unexpected {len(unexpected)})"
+                 if missing or unexpected else ""))
 
     def metrics(p):
         logits = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
