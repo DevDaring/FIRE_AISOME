@@ -30,11 +30,20 @@ from common import (ARTIFACTS_DIR, LABELS, SEED, load_dev, macro_f1, read_csv,
 
 PCOLS = [f"p_{l.lower()}" for l in LABELS]
 
-# every channel we might have; missing files are skipped silently
+# Channels this selector is allowed to consider. A channel may only appear here
+# if it was trained WITHOUT the dev_holdout rows -- otherwise it is scored on its
+# own training data and wins by memorisation.
+#
+# `probs_refit_*` is deliberately absent: that model refits on all 971 judge
+# labels including the holdout, which is the right thing for the SUBMISSION
+# (legitimate transduction on unlabelled test comments) but makes its dev score
+# meaningless. It may substitute for the distilled channel on the strength of the
+# leak-free variant's measurement -- never on its own number.
+LEAKY_EXCLUDED = ("probs_refit_{L}.csv",)
+
 CANDIDATES = {
     "distil": "probs_distil_{L}.cal.csv",
     "stage2": "probs_stage2_{L}.csv",
-    "refit":  "probs_refit_{L}.csv",
     "seed2":  "probs_seed2_{L}.cal.csv",
     "indic":  "probs_indic_{L}.cal.csv",
     "setu":   "probs_setu_{L}.cal.csv",
