@@ -1,39 +1,19 @@
 # Required actions — things only you can do
 
-**Team Nirnay · AISoMe 2026 @ FIRE · updated 4 Aug 2026**
+**Team Nirnay · AISoMe 2026 @ FIRE · updated 19 Aug 2026**
 
-The modelling work is **finished**. Everything below is either yours to do or a
-decision only you can make. Nothing is running; nothing is billing.
+**Runs are submitted.** The organisers have confirmed receipt and report **more
+than 80 runs** across the track, with results delayed while they evaluate. The
+modelling work is finished and nothing is running or billing.
 
----
-
-## 🔴 DO THIS FIRST — submit the runs
-
-### 1. Upload the ZIP to the organizers
-
-**File:** `Submission/runs/Nirnay_AISoMe2026_submission.zip`
-(contains `Nirnay_hindi.csv` and `Nirnay_bengali.csv`)
-
-Validated on every check: 500 rows per file, header exactly
-`id,model1_label,model2_label,model3_label`, ids byte-identical to your `.xlsx`
-files **in the original order**, no blanks, no single-class column.
-
-**Deadline 7 August 2026.** Not submitting is the only guaranteed loss.
-
-### 2. Confirm two things with the organizers (same email)
-
-Email **aisome.fire2026@gmail.com**:
-
-- **The exact deadline hour and timezone.** Still unconfirmed. The original
-  date was 31 July; the test data arrived 1 August.
-- **CSV or XLSX?** We produced CSV, which their email permits. If they want
-  XLSX, tell me and I will regenerate — it is a one-flag change.
+The remaining work is the **working note, due 20 September** — and one
+measurement that is worth more than anything else left.
 
 ---
 
 ## 🟡 THE BIGGEST REMAINING RISK — and it is cheap to fix
 
-### 3. Blind-label 50 comments (~2 hours)
+### 1. Blind-label 50 comments (~2 hours)
 
 Every score we report — **hi 0.922 / bn 0.915** — measures agreement with our
 **LLM judge panel**, not with ground truth. The panel agrees with itself well
@@ -73,46 +53,66 @@ them against blind human annotation at 0.89"* is a contribution;
 
 ---
 
-## 🟢 THE WORKING NOTES — drafted, needs your details
+## 🟢 THE WORKING NOTE — written and compiling
 
-**File:** `Submission/working_notes.tex` — a complete CEURART paper, due
-**20 September 2026**. Submitting it (and presenting at FIRE in December) is a
-*precondition* for being declared a winner, not optional.
+**File:** `Submission/AISOME.tex` → builds to `AISOME.pdf`, **10 pages**
+(the limit is 6–10 including references), 18 references, 3 figures.
+Due **20 September 2026**. Submitting it *and* presenting at FIRE in December is
+a precondition for being declared a winner.
+
+Three things in the 19 Aug email changed what I had drafted, and are now fixed:
+
+- **Title no longer names the team or track.** The old draft was literally
+  *"Nirnay at AISoMe 2026: …"* — the exact pattern the organisers call out as
+  discouraged. It is now *"Diagnosing the Evaluation Distribution:
+  Argument-Taxonomy Distillation and an English Pivot for Climate Stance
+  Detection in Hindi and Bengali"*.
+- **Single column.** The template's own comment forbids `twocolumn` for CEUR-WS;
+  my earlier draft had it.
+- **Only one working note per track**, so the superseded `working_notes.tex` has
+  been deleted. `AISOME.tex` is the one.
 
 ### What you must fill in
 
 1. **Co-authors.** I listed only you (IIIT Kalyani / Accenture). Add anyone else
-   with their affiliation — see the `\author` block and the `%% TODO` markers.
-2. **Your ORCID** in the `\author` options.
-3. **The Das 2025 citation.** The organizers pointed at it as methodological
-   guidance; it is paywalled on ScienceDirect and I could not read it. Fetch the
-   full reference and, ideally, cite it properly in §2.
-4. **Compile it.** Needs `ceurart.cls` and the Libertinus fonts:
-   - Overleaf: search "CEURART" and paste the `.tex` in, or
-   - download `CEURART.zip` from <https://ceur-ws.org/HOWTOSUBMIT.html>
+   with their affiliation in the `\author` / `\address` block.
+2. **Your ORCID** — uncomment the `orcid=` line in the `\author` options.
+3. **The Das 2025 citation.** The organisers pointed at it as methodological
+   guidance; it is paywalled and I could not read it. If you can get it, add it
+   to `referenences.bib` and cite it in the Related Work section.
+4. **Author name has no prefix** — the organisers ask for no "Dr."/"Prof.".
+   Currently correct; keep it that way when you add co-authors.
 
-### Read the Generative AI declaration before submitting
+### Read the Generative AI declaration before you submit
 
-CEUR **mandates** a "Declaration on Generative AI". I have written a full and
-honest one: LLMs generated the synthetic corpus, produced the distilled
-pseudo-labels and development labels, and did the translation; and an AI
-assistant helped with code and drafting. **Read it and confirm it matches how
-you want your involvement described** — it is your name on the paper. Adjust the
-wording freely; do not weaken the factual content, because the LLM role here is
-substantial and reviewers will check it against the method section.
+CEUR **mandates** it, and ours is substantial rather than boilerplate: LLMs
+generated the synthetic corpus, produced the pseudo-labels distilled into the
+submitted classifiers, produced the development labels used for calibration, and
+did all the translation. **Read that section and confirm it describes your
+involvement the way you want** — it is your name on the paper. Adjust the wording
+freely, but do not weaken the factual content; reviewers will check it against
+the method section.
+
+### Rendering
+
+It compiles locally (0 errors, 0 undefined citations). On Overleaf use the
+template the organisers linked, then upload `AISOME.tex`, `referenences.bib`
+and the `figures/` folder. `ceurart.cls` and `elsarticle-num-names.bst` are in
+the repo if you need them.
+
+**One copyright form per author** is required — the organisers will send it.
 
 ---
 
 ## 🔵 DECISIONS FOR YOU
 
-### 4. GitHub repo is PRIVATE — flip it after results
+### 2. GitHub repo is PRIVATE — flip it after results
 
 I set `DevDaring/FIRE_AISOME` private because `STRATEGY.md` spells out the
-test-set discovery and the competition was open. **Make it public once results
-are declared (31 Aug)** — good practice for the CEUR paper, and the code is a
+test-set discovery and the competition was open. **Make it public once results are declared** — good practice for the CEUR paper, and the code is a
 genuine artifact. Say the word and I will flip it.
 
-### 5. HuggingFace repos are PRIVATE — publish with the paper
+### 3. HuggingFace repos are PRIVATE — publish with the paper
 
 - `Debk/nirnay-aisome2026-setu` — both adopted checkpoints + model card
 - `Debk/nirnay-aisome2026-data` — taxonomy, synthetic corpus, judge labels, dev split
@@ -120,7 +120,7 @@ genuine artifact. Say the word and I will flip it.
 The **taxonomy is the most citable thing here.** Publishing it alongside the
 paper is how it gets used by others.
 
-### 6. Two dead API keys — replace or delete
+### 4. Two dead API keys — replace or delete
 
 `GEMINI_API_KEY_2` and `Link_Gemini_Cheap_API_Key` both return *"API key not
 valid"*. Harmless now (nothing uses Google any more, per your instruction), but
@@ -135,11 +135,12 @@ worth cleaning out of `.env`.
 | Submission built and validated | `Submission/runs/` — all checks pass |
 | Best system | DeBERTa-v3-large on back-translated English, calibrated |
 | Dev macro-F1 | **hi 0.922 / bn 0.915** (vs 0.810 / 0.779 pre-pivot) |
-| GitHub | 20 commits, private, secrets and organizer data excluded |
+| Runs submitted | organisers confirmed receipt; 80+ runs in the track |
+| GitHub | 22 commits, private, secrets and organiser data excluded |
 | HuggingFace | models + dataset uploaded with cards |
 | GPU | **destroyed — 0 instances, total spend $1.11**, $7.21 credit left |
 | Background jobs | none running |
-| Working notes | drafted at `Submission/working_notes.tex` |
+| Working note | `Submission/AISOME.tex` — compiles to 10 pages, 3 figures, 18 refs |
 
 ### What is in the submission
 
