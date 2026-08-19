@@ -135,7 +135,7 @@ IndicBERTv2~\cite{doddapaneni2023}. An alternative reformulates
 classification as entailment against a hypothesis~\cite{yin2019}, using
 XNLI-trained models in multilingual settings~\cite{conneau2018xnli}; we include
 this as a baseline. Surveys document rapid adoption of large language models
-for stance detection~\cite{wang2024survey}, generally as direct predictors or
+for stance detection~\cite{pangtey2025}, generally as direct predictors or
 as annotators.
 
 We instead use language models as a \emph{teacher}, following knowledge
@@ -146,7 +146,7 @@ channel adapts a hybrid framework for multilingual zero-shot
 classification~\cite{deb2026} aligning sentence embeddings with knowledge-graph
 label embeddings; where that work uses ConceptNet~\cite{speer2017} we
 substitute our task-specific taxonomy, and we retain its
-Kolmogorov--Arnold~\cite{liu2024} alignment.
+Kolmogorov--Arnold~\cite{liu2025kan} alignment.
 
 %% ---------------------------------------------------------------------------
 \section{Task and Data}
@@ -465,7 +465,7 @@ checkpoints requiring no API call at inference.
 We also evaluate a \textbf{projection channel} adapting the hybrid framework
 of Deb et al.~\cite{deb2026}. LaBSE embeddings are projected into a semantic
 space built from the taxonomy's gloss-and-cue embeddings by a hybrid of a
-Kolmogorov--Arnold network~\cite{liu2024} and support-vector regression, and
+Kolmogorov--Arnold network~\cite{liu2025kan} and support-vector regression, and
 stance is read from cosine similarity aggregated over nodes. Here the taxonomy
 replaces ConceptNet~\cite{speer2017} as the knowledge source, which is both
 domain-matched and considerably richer than a bare three-way label space.

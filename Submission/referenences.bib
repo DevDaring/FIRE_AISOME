@@ -1,3 +1,20 @@
+%% ===========================================================================
+%% References for "Diagnosing the Evaluation Distribution: ..."
+%%
+%% Every entry below was verified against a primary source, not from memory:
+%%   - ACL entries  : canonical .bib from aclanthology.org/<id>.bib
+%%   - DOI entries  : Crossref content negotiation on doi.org
+%%   - arXiv entries: the arXiv API (export.arxiv.org), incl. journal-ref check
+%%   - ICLR entries : DBLP + the official ICLR proceedings site
+%%   - deb2026      : checked against the manuscript PDF itself
+%%
+%% Where a preprint has since appeared at a venue, the venue is cited (KAN ->
+%% ICLR 2025). Entries kept as arXiv were confirmed to have an EMPTY arXiv
+%% journal-ref, i.e. no published version exists.
+%% ===========================================================================
+
+%% Verified: Crossref. Scientific Reports uses article numbers, not page
+%% ranges; 22320 is the article number.
 @article{coan2021,
   author  = {Coan, Travis G. and Boussalis, Constantine and Cook, John and
              Nanko, Mirjam O.},
@@ -11,6 +28,7 @@
   doi     = {10.1038/s41598-021-01714-4}
 }
 
+%% Verified: aclanthology.org/2020.findings-emnlp.296.bib
 @inproceedings{luo2020,
   author    = {Luo, Yiwei and Card, Dallas and Jurafsky, Dan},
   title     = {Detecting Stance in Media on Global Warming},
@@ -21,6 +39,7 @@
   doi       = {10.18653/v1/2020.findings-emnlp.296}
 }
 
+%% Verified: aclanthology.org/S16-1003.bib
 @inproceedings{mohammad2016,
   author    = {Mohammad, Saif and Kiritchenko, Svetlana and Sobhani, Parinaz
                and Zhu, Xiaodan and Cherry, Colin},
@@ -32,6 +51,7 @@
   doi       = {10.18653/v1/S16-1003}
 }
 
+%% Verified: arXiv API. 14 authors, no journal-ref -- preprint only.
 @article{khanuja2021,
   author  = {Khanuja, Simran and Bansal, Diksha and Mehtani, Sarvesh and
              Khosla, Savya and Dey, Atreyee and Gopalan, Balaji and
@@ -40,9 +60,13 @@
              and Subramanian, Vish and Talukdar, Partha},
   title   = {{MuRIL}: Multilingual Representations for Indian Languages},
   journal = {arXiv preprint arXiv:2103.10730},
-  year    = {2021}
+  year    = {2021},
+  archivePrefix = {arXiv},
+  eprint        = {2103.10730},
+  primaryClass  = {cs.CL}
 }
 
+%% Verified: aclanthology.org/2020.acl-main.747.bib
 @inproceedings{conneau2020,
   author    = {Conneau, Alexis and Khandelwal, Kartikay and Goyal, Naman and
                Chaudhary, Vishrav and Wenzek, Guillaume and Guzm{\'a}n,
@@ -56,50 +80,59 @@
   doi       = {10.18653/v1/2020.acl-main.747}
 }
 
+%% Verified: DBLP (ICLR 2023). ICLR proceedings carry no page numbers, so no
+%% pages field is given.
 @inproceedings{he2023,
   author    = {He, Pengcheng and Gao, Jianfeng and Chen, Weizhu},
   title     = {{DeBERTaV3}: Improving {DeBERTa} using {ELECTRA}-Style
                Pre-Training with Gradient-Disentangled Embedding Sharing},
   booktitle = {The Eleventh International Conference on Learning
                Representations (ICLR)},
-  pages     = {1--18},
   year      = {2023}
 }
 
+%% Verified: aclanthology.org/2023.acl-long.693.bib
 @inproceedings{doddapaneni2023,
   author    = {Doddapaneni, Sumanth and Aralikatte, Rahul and Ramesh, Gowtham
                and Goyal, Shreya and Khapra, Mitesh M. and Kunchukuttan, Anoop
                and Kumar, Pratyush},
-  title     = {Towards Leaving No Indic Language Behind: Building Monolingual
-               Corpora, Benchmark and Models for Indic Languages},
+  title     = {Towards Leaving No {Indic} Language Behind: Building Monolingual
+               Corpora, Benchmark and Models for {Indic} Languages},
   booktitle = {Proceedings of the 61st Annual Meeting of the Association for
-               Computational Linguistics},
+               Computational Linguistics (Volume 1: Long Papers)},
   pages     = {12402--12426},
   year      = {2023},
   doi       = {10.18653/v1/2023.acl-long.693}
 }
 
+%% Verified: aclanthology.org/2022.acl-long.62.bib
 @inproceedings{feng2022,
   author    = {Feng, Fangxiaoyu and Yang, Yinfei and Cer, Daniel and
                Arivazhagan, Naveen and Wang, Wei},
   title     = {Language-agnostic {BERT} Sentence Embedding},
   booktitle = {Proceedings of the 60th Annual Meeting of the Association for
-               Computational Linguistics},
+               Computational Linguistics (Volume 1: Long Papers)},
   pages     = {878--891},
   year      = {2022},
   doi       = {10.18653/v1/2022.acl-long.62}
 }
 
+%% Verified: PMLR citation metadata (proceedings.mlr.press/v70/guo17a.html) --
+%% first page 1321, last page 1330, PMLR volume 70.
 @inproceedings{guo2017,
   author    = {Guo, Chuan and Pleiss, Geoff and Sun, Yu and
                Weinberger, Kilian Q.},
   title     = {On Calibration of Modern Neural Networks},
   booktitle = {Proceedings of the 34th International Conference on Machine
                Learning (ICML)},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {70},
   pages     = {1321--1330},
+  publisher = {PMLR},
   year      = {2017}
 }
 
+%% Verified: Crossref (MIT Press).
 @article{saerens2002,
   author  = {Saerens, Marco and Latinne, Patrice and Decaestecker, Christine},
   title   = {Adjusting the Outputs of a Classifier to New a Priori
@@ -112,33 +145,46 @@
   doi     = {10.1162/089976602753284446}
 }
 
-@article{liu2024,
-  author  = {Liu, Ziming and Wang, Yixuan and Vaidya, Sachin and
-             Ruehle, Fabian and Halverson, James and Solja{\v c}i{\'c}, Marin
-             and Hou, Thomas Y. and Tegmark, Max},
-  title   = {{KAN}: {Kolmogorov--Arnold} Networks},
-  journal = {arXiv preprint arXiv:2404.19756},
-  year    = {2024}
+%% Verified: DBLP + official ICLR 2025 proceedings. This began as arXiv
+%% 2404.19756 but was accepted at ICLR 2025 (Oral), so the conference is cited
+%% rather than the preprint. Author list confirmed identical in both versions.
+@inproceedings{liu2025kan,
+  author    = {Liu, Ziming and Wang, Yixuan and Vaidya, Sachin and
+               Ruehle, Fabian and Halverson, James and Solja{\v c}i{\'c}, Marin
+               and Hou, Thomas Y. and Tegmark, Max},
+  title     = {{KAN}: {Kolmogorov--Arnold} Networks},
+  booktitle = {The Thirteenth International Conference on Learning
+               Representations (ICLR)},
+  year      = {2025}
 }
 
+%% Verified: arXiv API. No journal-ref; DBLP indexes it as CoRR only. (It was
+%% presented at the NIPS 2014 Deep Learning workshop, which issued no formal
+%% proceedings, so the preprint is the citable record.)
 @article{hinton2015,
   author  = {Hinton, Geoffrey and Vinyals, Oriol and Dean, Jeff},
   title   = {Distilling the Knowledge in a Neural Network},
   journal = {arXiv preprint arXiv:1503.02531},
-  year    = {2015}
+  year    = {2015},
+  archivePrefix = {arXiv},
+  eprint        = {1503.02531},
+  primaryClass  = {stat.ML}
 }
 
+%% Verified: aclanthology.org/D19-1404.bib
 @inproceedings{yin2019,
   author    = {Yin, Wenpeng and Hay, Jamaal and Roth, Dan},
   title     = {Benchmarking Zero-shot Text Classification: Datasets,
                Evaluation and Entailment Approach},
   booktitle = {Proceedings of the 2019 Conference on Empirical Methods in
-               Natural Language Processing (EMNLP-IJCNLP)},
+               Natural Language Processing and the 9th International Joint
+               Conference on Natural Language Processing (EMNLP-IJCNLP)},
   pages     = {3914--3923},
   year      = {2019},
   doi       = {10.18653/v1/D19-1404}
 }
 
+%% Verified: aclanthology.org/2020.emnlp-main.717.bib
 @inproceedings{allaway2020,
   author    = {Allaway, Emily and McKeown, Kathleen},
   title     = {Zero-Shot Stance Detection: A Dataset and Model using
@@ -150,36 +196,35 @@
   doi       = {10.18653/v1/2020.emnlp-main.717}
 }
 
+%% Verified: aclanthology.org/D18-1269.bib
 @inproceedings{conneau2018xnli,
   author    = {Conneau, Alexis and Rinott, Ruty and Lample, Guillaume and
                Williams, Adina and Bowman, Samuel R. and Schwenk, Holger and
                Stoyanov, Veselin},
   title     = {{XNLI}: Evaluating Cross-lingual Sentence Representations},
   booktitle = {Proceedings of the 2018 Conference on Empirical Methods in
-               Natural Language Processing (EMNLP)},
+               Natural Language Processing},
   pages     = {2475--2485},
   year      = {2018},
   doi       = {10.18653/v1/D18-1269}
 }
 
-@inproceedings{lester2021,
-  author    = {Lester, Brian and Al-Rfou, Rami and Constant, Noah},
-  title     = {The Power of Scale for Parameter-Efficient Prompt Tuning},
-  booktitle = {Proceedings of the 2021 Conference on Empirical Methods in
-               Natural Language Processing (EMNLP)},
-  pages     = {3045--3059},
-  year      = {2021},
-  doi       = {10.18653/v1/2021.emnlp-main.243}
-}
-
-@article{wang2024survey,
-  author  = {Wang, Xiao and Wang, Weikang and Zhou, Jian},
+%% Verified: arXiv API -- authors confirmed as Pangtey et al. No journal-ref;
+%% DBLP indexes it as CoRR only (submitted to Elsevier, not yet published).
+@article{pangtey2025,
+  author  = {Pangtey, Lata and Bhatnagar, Anukriti and Bansal, Shubhi and
+             Dar, Shahid Shafi and Kumar, Nagendra},
   title   = {Large Language Models Meet Stance Detection: A Survey of Tasks,
              Methods, Applications, Challenges and Future Directions},
   journal = {arXiv preprint arXiv:2505.08464},
-  year    = {2025}
+  year    = {2025},
+  archivePrefix = {arXiv},
+  eprint        = {2505.08464},
+  primaryClass  = {cs.CL}
 }
 
+%% Verified against the manuscript PDF: title and the three authors match the
+%% submitted version exactly.
 @unpublished{deb2026,
   author  = {Deb, Koushik and Mukherjee, Imon and Sanyal, Debarshi Kumar},
   title   = {Hybrid Projection Methods for Multilingual Zero-shot Text
@@ -188,6 +233,11 @@
   year    = {2026}
 }
 
+%% Verified: Crossref. AAAI indexes its proceedings as a serial, hence the
+%% article-style entry with volume/number. Crossref lists no page range for
+%% this record, so none is asserted here.
+%% (NB: never write an at-sign in a .bib comment -- BibTeX reads it as the
+%% start of an entry even on a %% line.)
 @article{speer2017,
   author    = {Speer, Robyn and Chin, Joshua and Havasi, Catherine},
   title     = {{ConceptNet} 5.5: An Open Multilingual Graph of General
@@ -195,5 +245,6 @@
   journal   = {Proceedings of the AAAI Conference on Artificial Intelligence},
   volume    = {31},
   number    = {1},
-  year      = {2017}
+  year      = {2017},
+  doi       = {10.1609/aaai.v31i1.11164}
 }
