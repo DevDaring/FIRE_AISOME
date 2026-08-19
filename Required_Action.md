@@ -72,16 +72,27 @@ Three things in the 19 Aug email changed what I had drafted, and are now fixed:
 - **Only one working note per track**, so the superseded `working_notes.tex` has
   been deleted. `AISOME.tex` is the one.
 
-### What you must fill in
+### Authorship — done
 
-1. **Co-authors.** I listed only you (IIIT Kalyani / Accenture). Add anyone else
-   with their affiliation in the `\author` / `\address` block.
-2. **Your ORCID** — uncomment the `orcid=` line in the `\author` options.
-3. **The Das 2025 citation.** The organisers pointed at it as methodological
-   guidance; it is paywalled and I could not read it. If you can get it, add it
-   to `referenences.bib` and cite it in the Related Work section.
-4. **Author name has no prefix** — the organisers ask for no "Dr."/"Prof.".
-   Currently correct; keep it that way when you add co-authors.
+Single author, exactly as you specified: **Koushik Deb**, ORCID
+0000-0001-7902-4387, `koushik_phd21@iiitkalyani.ac.in`, sole affiliation
+*Indian Institute of Information Technology Kalyani, Kalyani, West Bengal,
+741235, India*. The Accenture affiliation and the gmail address are gone, and
+the name carries no "Dr."/"Prof." prefix, as the organisers require.
+
+One implementation note in case you edit this in Overleaf: the underscore in
+your email is written `koushik\string_phd21@...`. A plain `\_` compiles fine in
+body text but **fails** inside the `email=` key, because hyperref writes that
+value into a `mailto:` URL where `\_` expands to `\T1\textunderscore`. Leave
+`\string_` as it is. Verified: the footer prints the address correctly and the
+`mailto:` and `https://orcid.org/…` links both resolve.
+
+### The one thing still to fill in
+
+**The Das 2025 citation.** The organisers pointed at it as methodological
+guidance; it is paywalled and I could not read it. If you can get it, add it to
+`referenences.bib` and cite it in the Related Work section. The paper is
+complete and submittable without it — this is an improvement, not a blocker.
 
 ### Read the Generative AI declaration before you submit
 
