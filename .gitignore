@@ -69,3 +69,13 @@ Codes/logs/
 
 # Large model checkpoints live on HuggingFace, not in git
 Codes/artifacts/model_*/
+
+# LaTeX build artifacts (keep .tex, .bib, figures and the built PDF)
+Submission/*.aux
+Submission/*.blg
+Submission/*.fls
+Submission/*.fdb_latexmk
+Submission/*.out
+Submission/*.synctex.gz
+Submission/*.abs
+Submission/*.xmpdata

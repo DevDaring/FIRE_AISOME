@@ -1,0 +1,103 @@
+\begin{thebibliography}{18}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\href}[2]{#2}
+\providecommand{\path}[1]{#1}
+\providecommand{\DOIprefix}{doi:}
+\providecommand{\ArXivprefix}{arXiv:}
+\providecommand{\URLprefix}{URL: }
+\providecommand{\Pubmedprefix}{pmid:}
+\providecommand{\doi}[1]{\href{http://dx.doi.org/#1}{\path{#1}}}
+\providecommand{\Pubmed}[1]{\href{pmid:#1}{\path{#1}}}
+\providecommand{\bibinfo}[2]{#2}
+\ifx\xfnm\relax \def\xfnm[#1]{\unskip,\space#1}\fi
+%Type = Article
+\bibitem[{Coan et~al.(2021)Coan, Boussalis, Cook, and Nanko}]{coan2021}
+\bibinfo{author}{T.~G. Coan}, \bibinfo{author}{C.~Boussalis}, \bibinfo{author}{J.~Cook}, \bibinfo{author}{M.~O. Nanko},
+\newblock \bibinfo{title}{Computer-assisted classification of contrarian claims about climate change},
+\newblock \bibinfo{journal}{Scientific Reports} \bibinfo{volume}{11} (\bibinfo{year}{2021}) \bibinfo{pages}{22320}. \DOIprefix\doi{10.1038/s41598-021-01714-4}.
+%Type = Inproceedings
+\bibitem[{Mohammad et~al.(2016)Mohammad, Kiritchenko, Sobhani, Zhu, and Cherry}]{mohammad2016}
+\bibinfo{author}{S.~Mohammad}, \bibinfo{author}{S.~Kiritchenko}, \bibinfo{author}{P.~Sobhani}, \bibinfo{author}{X.~Zhu}, \bibinfo{author}{C.~Cherry},
+\newblock \bibinfo{title}{{SemEval-2016} task 6: Detecting stance in tweets},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 10th International Workshop on Semantic Evaluation (SemEval-2016)}, \bibinfo{year}{2016}, pp. \bibinfo{pages}{31--41}. \DOIprefix\doi{10.18653/v1/S16-1003}.
+%Type = Inproceedings
+\bibitem[{Allaway and McKeown(2020)}]{allaway2020}
+\bibinfo{author}{E.~Allaway}, \bibinfo{author}{K.~McKeown},
+\newblock \bibinfo{title}{Zero-shot stance detection: A dataset and model using generalized topic representations},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, \bibinfo{year}{2020}, pp. \bibinfo{pages}{8913--8931}. \DOIprefix\doi{10.18653/v1/2020.emnlp-main.717}.
+%Type = Inproceedings
+\bibitem[{Luo et~al.(2020)Luo, Card, and Jurafsky}]{luo2020}
+\bibinfo{author}{Y.~Luo}, \bibinfo{author}{D.~Card}, \bibinfo{author}{D.~Jurafsky},
+\newblock \bibinfo{title}{Detecting stance in media on global warming},
+\newblock in: \bibinfo{booktitle}{Findings of the Association for Computational Linguistics: EMNLP 2020}, \bibinfo{year}{2020}, pp. \bibinfo{pages}{3296--3315}. \DOIprefix\doi{10.18653/v1/2020.findings-emnlp.296}.
+%Type = Inproceedings
+\bibitem[{Conneau et~al.(2020)Conneau, Khandelwal, Goyal, Chaudhary, Wenzek, Guzm{\'a}n, Grave, Ott, Zettlemoyer, and Stoyanov}]{conneau2020}
+\bibinfo{author}{A.~Conneau}, \bibinfo{author}{K.~Khandelwal}, \bibinfo{author}{N.~Goyal}, \bibinfo{author}{V.~Chaudhary}, \bibinfo{author}{G.~Wenzek}, \bibinfo{author}{F.~Guzm{\'a}n}, \bibinfo{author}{E.~Grave}, \bibinfo{author}{M.~Ott}, \bibinfo{author}{L.~Zettlemoyer}, \bibinfo{author}{V.~Stoyanov},
+\newblock \bibinfo{title}{Unsupervised cross-lingual representation learning at scale},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics}, \bibinfo{year}{2020}, pp. \bibinfo{pages}{8440--8451}. \DOIprefix\doi{10.18653/v1/2020.acl-main.747}.
+%Type = Article
+\bibitem[{Khanuja et~al.(2021)Khanuja, Bansal, Mehtani, Khosla, Dey, Gopalan, Margam, Aggarwal, Nagipogu, Dave, Gupta, Gali, Subramanian, and Talukdar}]{khanuja2021}
+\bibinfo{author}{S.~Khanuja}, \bibinfo{author}{D.~Bansal}, \bibinfo{author}{S.~Mehtani}, \bibinfo{author}{S.~Khosla}, \bibinfo{author}{A.~Dey}, \bibinfo{author}{B.~Gopalan}, \bibinfo{author}{D.~K. Margam}, \bibinfo{author}{P.~Aggarwal}, \bibinfo{author}{R.~T. Nagipogu}, \bibinfo{author}{S.~Dave}, \bibinfo{author}{S.~Gupta}, \bibinfo{author}{S.~C.~B. Gali}, \bibinfo{author}{V.~Subramanian}, \bibinfo{author}{P.~Talukdar},
+\newblock \bibinfo{title}{{MuRIL}: Multilingual representations for indian languages},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2103.10730}  (\bibinfo{year}{2021}).
+%Type = Inproceedings
+\bibitem[{Doddapaneni et~al.(2023)Doddapaneni, Aralikatte, Ramesh, Goyal, Khapra, Kunchukuttan, and Kumar}]{doddapaneni2023}
+\bibinfo{author}{S.~Doddapaneni}, \bibinfo{author}{R.~Aralikatte}, \bibinfo{author}{G.~Ramesh}, \bibinfo{author}{S.~Goyal}, \bibinfo{author}{M.~M. Khapra}, \bibinfo{author}{A.~Kunchukuttan}, \bibinfo{author}{P.~Kumar},
+\newblock \bibinfo{title}{Towards leaving no indic language behind: Building monolingual corpora, benchmark and models for indic languages},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 61st Annual Meeting of the Association for Computational Linguistics}, \bibinfo{year}{2023}, pp. \bibinfo{pages}{12402--12426}. \DOIprefix\doi{10.18653/v1/2023.acl-long.693}.
+%Type = Inproceedings
+\bibitem[{Yin et~al.(2019)Yin, Hay, and Roth}]{yin2019}
+\bibinfo{author}{W.~Yin}, \bibinfo{author}{J.~Hay}, \bibinfo{author}{D.~Roth},
+\newblock \bibinfo{title}{Benchmarking zero-shot text classification: Datasets, evaluation and entailment approach},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP-IJCNLP)}, \bibinfo{year}{2019}, pp. \bibinfo{pages}{3914--3923}. \DOIprefix\doi{10.18653/v1/D19-1404}.
+%Type = Inproceedings
+\bibitem[{Conneau et~al.(2018)Conneau, Rinott, Lample, Williams, Bowman, Schwenk, and Stoyanov}]{conneau2018xnli}
+\bibinfo{author}{A.~Conneau}, \bibinfo{author}{R.~Rinott}, \bibinfo{author}{G.~Lample}, \bibinfo{author}{A.~Williams}, \bibinfo{author}{S.~R. Bowman}, \bibinfo{author}{H.~Schwenk}, \bibinfo{author}{V.~Stoyanov},
+\newblock \bibinfo{title}{{XNLI}: Evaluating cross-lingual sentence representations},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, \bibinfo{year}{2018}, pp. \bibinfo{pages}{2475--2485}. \DOIprefix\doi{10.18653/v1/D18-1269}.
+%Type = Article
+\bibitem[{Wang et~al.(2025)Wang, Wang, and Zhou}]{wang2024survey}
+\bibinfo{author}{X.~Wang}, \bibinfo{author}{W.~Wang}, \bibinfo{author}{J.~Zhou},
+\newblock \bibinfo{title}{Large language models meet stance detection: A survey of tasks, methods, applications, challenges and future directions},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2505.08464}  (\bibinfo{year}{2025}).
+%Type = Article
+\bibitem[{Hinton et~al.(2015)Hinton, Vinyals, and Dean}]{hinton2015}
+\bibinfo{author}{G.~Hinton}, \bibinfo{author}{O.~Vinyals}, \bibinfo{author}{J.~Dean},
+\newblock \bibinfo{title}{Distilling the knowledge in a neural network},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:1503.02531}  (\bibinfo{year}{2015}).
+%Type = Unpublished
+\bibitem[{Deb et~al.(2026)Deb, Mukherjee, and Sanyal}]{deb2026}
+\bibinfo{author}{K.~Deb}, \bibinfo{author}{I.~Mukherjee}, \bibinfo{author}{D.~K. Sanyal}, \bibinfo{title}{Hybrid projection methods for multilingual zero-shot text classification}, \bibinfo{year}{2026}. \bibinfo{note}{Manuscript submitted for publication}.
+%Type = Article
+\bibitem[{Speer et~al.(2017)Speer, Chin, and Havasi}]{speer2017}
+\bibinfo{author}{R.~Speer}, \bibinfo{author}{J.~Chin}, \bibinfo{author}{C.~Havasi},
+\newblock \bibinfo{title}{{ConceptNet} 5.5: An open multilingual graph of general knowledge},
+\newblock \bibinfo{journal}{Proceedings of the AAAI Conference on Artificial Intelligence} \bibinfo{volume}{31} (\bibinfo{year}{2017}).
+%Type = Article
+\bibitem[{Liu et~al.(2024)Liu, Wang, Vaidya, Ruehle, Halverson, Solja{\v c}i{\'c}, Hou, and Tegmark}]{liu2024}
+\bibinfo{author}{Z.~Liu}, \bibinfo{author}{Y.~Wang}, \bibinfo{author}{S.~Vaidya}, \bibinfo{author}{F.~Ruehle}, \bibinfo{author}{J.~Halverson}, \bibinfo{author}{M.~Solja{\v c}i{\'c}}, \bibinfo{author}{T.~Y. Hou}, \bibinfo{author}{M.~Tegmark},
+\newblock \bibinfo{title}{{KAN}: {Kolmogorov--Arnold} networks},
+\newblock \bibinfo{journal}{arXiv preprint arXiv:2404.19756}  (\bibinfo{year}{2024}).
+%Type = Inproceedings
+\bibitem[{He et~al.(2023)He, Gao, and Chen}]{he2023}
+\bibinfo{author}{P.~He}, \bibinfo{author}{J.~Gao}, \bibinfo{author}{W.~Chen},
+\newblock \bibinfo{title}{{DeBERTaV3}: Improving {DeBERTa} using {ELECTRA}-style pre-training with gradient-disentangled embedding sharing},
+\newblock in: \bibinfo{booktitle}{The Eleventh International Conference on Learning Representations (ICLR)}, \bibinfo{year}{2023}, pp. \bibinfo{pages}{1--18}.
+%Type = Inproceedings
+\bibitem[{Guo et~al.(2017)Guo, Pleiss, Sun, and Weinberger}]{guo2017}
+\bibinfo{author}{C.~Guo}, \bibinfo{author}{G.~Pleiss}, \bibinfo{author}{Y.~Sun}, \bibinfo{author}{K.~Q. Weinberger},
+\newblock \bibinfo{title}{On calibration of modern neural networks},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 34th International Conference on Machine Learning (ICML)}, \bibinfo{year}{2017}, pp. \bibinfo{pages}{1321--1330}.
+%Type = Article
+\bibitem[{Saerens et~al.(2002)Saerens, Latinne, and Decaestecker}]{saerens2002}
+\bibinfo{author}{M.~Saerens}, \bibinfo{author}{P.~Latinne}, \bibinfo{author}{C.~Decaestecker},
+\newblock \bibinfo{title}{Adjusting the outputs of a classifier to new a priori probabilities: A simple procedure},
+\newblock \bibinfo{journal}{Neural Computation} \bibinfo{volume}{14} (\bibinfo{year}{2002}) \bibinfo{pages}{21--41}. \DOIprefix\doi{10.1162/089976602753284446}.
+%Type = Inproceedings
+\bibitem[{Feng et~al.(2022)Feng, Yang, Cer, Arivazhagan, and Wang}]{feng2022}
+\bibinfo{author}{F.~Feng}, \bibinfo{author}{Y.~Yang}, \bibinfo{author}{D.~Cer}, \bibinfo{author}{N.~Arivazhagan}, \bibinfo{author}{W.~Wang},
+\newblock \bibinfo{title}{Language-agnostic {BERT} sentence embedding},
+\newblock in: \bibinfo{booktitle}{Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics}, \bibinfo{year}{2022}, pp. \bibinfo{pages}{878--891}. \DOIprefix\doi{10.18653/v1/2022.acl-long.62}.
+
+\end{thebibliography}
