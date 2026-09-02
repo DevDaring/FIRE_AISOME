@@ -1,6 +1,6 @@
 # Required actions — things only you can do
 
-**Team Nirnay · AISoMe 2026 @ FIRE · updated 19 Aug 2026**
+**Team Nirnay · AISoMe 2026 @ FIRE · updated 2 Sep 2026**
 
 **Runs are submitted.** The organisers have confirmed receipt and report **more
 than 80 runs** across the track, with results delayed while they evaluate. The
@@ -8,6 +8,62 @@ modelling work is finished and nothing is running or billing.
 
 The remaining work is the **working note, due 20 September** — and one
 measurement that is worth more than anything else left.
+
+---
+
+## 🔴 BLOCKING — paste the official test scores into the paper
+
+The organisers reviewed the working note and asked for **the evaluation result
+on test data**. The paper now has a section for exactly that
+(§8.2 *Results on the evaluation data*, Table 5), and everything in it that I
+could compute myself is already filled in. What I **cannot** supply is the
+official macro-F1, because those numbers exist only in the organisers' results
+e-mail — I will not invent them.
+
+**Send me the scores and I will fill them in**, or edit them yourself at the
+top of `Submission/AISOME.tex`:
+
+```latex
+\newcommand{\offOneHi}{0.71}   % model1 (English pivot, calibrated), Hindi
+\newcommand{\offOneBn}{0.69}   % model1, Bengali
+\newcommand{\offTwoHi}{...}    % model2 (English-only pool), Hindi
+\newcommand{\offTwoBn}{...}    % model2, Bengali
+\newcommand{\offThreeHi}{...}  % model3 (XLM-R-large, native), Hindi
+\newcommand{\offThreeBn}{...}  % model3, Bengali
+\newcommand{\offRank}{3rd of 87 runs}   % overall standing
+```
+
+Until you do, the table prints **[FILL]** in bold in seven places. That is
+deliberate — a loud marker cannot be submitted by accident, whereas a
+plausible-looking placeholder number could. **Do not submit with [FILL] still
+in the PDF.**
+
+Two sentences will likely need a small revision once the real numbers are in,
+and I will handle both if you send the scores:
+
+- §11 Limitations still says our official score *"will be lower than reported
+  here"* — written before any official number existed. If the official score
+  is close to the development figure, that sentence becomes a validated
+  prediction and should say so; if it is far below, the gap is worth a
+  sentence of its own, because it directly measures how far our LLM judge
+  panel's `None` boundary sits from the organisers' guidelines.
+- §8.2 currently describes the dev-vs-official gap in the abstract. With
+  numbers it should state the gap.
+
+### What is already in that section without needing you
+
+Computed from the submitted run files, so these are real and verifiable:
+
+| Run | hi F/A/N | bn F/A/N |
+|---|---|---|
+| `model1` | 39.0 / 44.0 / 17.0 | 38.8 / 40.2 / 21.0 |
+| `model2` | 38.6 / 42.4 / 19.0 | 35.4 / 42.4 / 22.2 |
+| `model3` | 35.2 / 44.4 / 20.4 | 32.2 / 43.2 / 24.6 |
+
+All three runs rank `Against` first and `None` last in both languages, which
+independently corroborates the class-imbalance finding in §4 from the model
+side. Three-run agreement is 87.2 % (hi) and 86.4 % (bn) — I corrected the
+paper, which previously rounded both to "87 % in both languages".
 
 ---
 
