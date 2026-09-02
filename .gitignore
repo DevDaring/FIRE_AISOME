@@ -60,7 +60,6 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
-Submission/Submission_Rules.pdf
 
 # Run logs — can contain provider error text with live keys in it
 logs/
@@ -70,12 +69,17 @@ Codes/logs/
 # Large model checkpoints live on HuggingFace, not in git
 Codes/artifacts/model_*/
 
-# LaTeX build artifacts (keep .tex, .bib, figures and the built PDF)
-Submission/*.aux
-Submission/*.blg
-Submission/*.fls
-Submission/*.fdb_latexmk
-Submission/*.out
-Submission/*.synctex.gz
-Submission/*.abs
-Submission/*.xmpdata
+# ============================================================================
+# DOCS AND THE PAPER — kept locally, deliberately NOT published in this repo.
+# The repo publishes code + results only; README.md at the root is the one doc.
+# Submission/ holds the CEUR working note and its build; procedure.html and
+# Required_Action.md are working notes; STRATEGY.md documents the test-set
+# analysis; the LREC PDF is an unpublished manuscript.
+# ============================================================================
+Submission/
+procedure.html
+Required_Action.md
+Codes/STRATEGY.md
+Submitted_LREC_Zero_Shot_Multilingual_Extended.pdf
+*.md
+!README.md

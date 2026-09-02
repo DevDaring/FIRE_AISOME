@@ -6,8 +6,40 @@ serious concern"* as **Favour / Against / None**
 **Metric:** macro-F1. **The catch:** training data is English-only; the test set is Hindi + Bengali.
 
 **SETU** — *सेतु* / *সেতু*, "bridge" in both target languages; **S**tance via
-**E**vidence-**T**axonomy **U**nification. Design rationale and the novelty argument:
-**[`STRATEGY.md`](STRATEGY.md)**.
+**E**vidence-**T**axonomy **U**nification. The design rationale and the full method are
+written up in the CEUR working note for the track.
+
+---
+
+## Repository layout
+
+```
+README.md              this file
+Codes/
+  src/                 all pipeline code
+  results/             submitted runs + validation report
+  run_all.sh           stage driver
+  requirements.txt
+```
+
+**Every command below is run from inside `Codes/`.** Paths in this README are relative to
+that directory.
+
+### Submitted runs
+
+`Codes/results/` holds what was actually sent to the organisers:
+`Nirnay_hindi.csv`, `Nirnay_bengali.csv` (columns `id,model1_label,model2_label,
+model3_label`), the packaged `Nirnay_AISoMe2026_submission.zip`, and
+`submission_report.json` with the format-validation output.
+
+| Column | System | dev macro-F1 (hi / bn) |
+|---|---|---|
+| `model1` | DeBERTa-v3-large, English pivot, calibrated | 0.922 / 0.915 |
+| `model2` | DeBERTa-v3-large, English-only pool | 0.886 / 0.877 |
+| `model3` | XLM-R-large, native script | 0.836 / 0.812 |
+
+Those figures are measured against held-out **LLM-judge-panel** labels, not human gold —
+see the working note's limitations section.
 
 ---
 
@@ -21,7 +53,7 @@ serious concern"* as **Favour / Against / None**
 | 31 Oct | Camera-ready working notes |
 
 Winners are the **top 2 teams**, decided on *(a)* best-run macro-F1, *(b)* working-notes
-quality, and *(c)* **novelty of the approach** — see `STRATEGY.md §1`.
+quality, and *(c)* **novelty of the approach**.
 
 **The submission format is not one-file-per-run.** From the organizers' email:
 
@@ -59,9 +91,10 @@ python3.12 -m pip install -r requirements.txt
 python3.12 src/llm.py          # verify API keys — should print 5 committee members
 ```
 
-`.env` (never committed) holds several keys per provider — `GEMINI_API_KEY_1..4`,
-`OPENROUTER_API_KEY_1..2`, `DEEPSEEK_API_KEY_1..2`, `MISTRAL_API_KEY1..2`. `common.env_keys()`
-rotates across all of them, which is what keeps a 5-model committee inside the free tiers.
+`.env` (never committed) holds several keys per provider — `OPENROUTER_API_KEY_1..2`,
+`DEEPSEEK_API_KEY_1..2`. `common.env_keys()` rotates across all of them, and evicts a key
+for the rest of the process once a provider reports it dead. The final pipeline uses
+DeepSeek and paid OpenRouter models only.
 
 ---
 
@@ -144,9 +177,9 @@ leaderboard and hands the working notes its headline table.
 
 | File | Role |
 |---|---|
-| `STRATEGY.md` | the novelty argument, risk analysis, order of work |
+| `results/` | the three submitted runs, the packaged ZIP, and the validation report |
 | `src/common.py` | paths, labels, `.env` key rotation, metrics, **`read_csv`** |
-| `src/taxonomy.py` | **25-node culturally-localised climate-argument taxonomy** + codebook |
+| `src/taxonomy.py` | **27-node culturally-localised climate-argument taxonomy** + codebook |
 | `src/llm.py` | multi-provider client: key rotation, disk cache, concurrency, JSON coercion |
 | `src/normalize.py` | script detection, romanised-Indic routing, transliteration, cleaning |
 | `src/prepare_data.py` | GWSD + SemEval → English pool with crowd soft labels |
@@ -204,7 +237,7 @@ everything above is ~10× faster.
 ### Smoke test before committing to a full run
 
 ```bash
-python3.12 src/taxonomy.py                                    # 25 nodes, 204 cue phrases
+python3.12 src/taxonomy.py                                    # 27 nodes, 228 cue phrases
 python3.12 src/llm.py                                         # provider connectivity
 python3.12 src/synth_generate.py --dry-run                    # cell plan, zero API calls
 python3.12 src/synth_generate.py --per-cell 2 --nodes B1_climate_colonialism \
